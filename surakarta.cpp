@@ -43,20 +43,24 @@ int main(int argc, char* argv[]) {
 		while(true) {
 
 			if((idx % 2) ) {
-				action a = env.take_action(b);//2
+				action &a = env.take_action(b);//2
 
 				if( a.apply(b) == -1) {
 					cout << b << '\n';//last board
 					win = play; break;
 				}
+				delete &a;
+
 			}
 			else {
-				action a = play.take_action(b);//1
+				action &a = play.take_action(b);//1
 
 				if ( a.apply(b) == -1) {
 					cout << b << '\n';//last board
 					win = env; break;
 				}
+			delete &a;
+
 			}
 			
 			//check draw

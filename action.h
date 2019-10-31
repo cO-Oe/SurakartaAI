@@ -11,15 +11,15 @@ class action {
 		action(int piece = -1, int last_pos = -1, int new_pos = -1, char act = 'n') : 
 		piece(piece), last_pos(last_pos), new_pos(new_pos), act(act) 
 		{}
-
+		virtual ~action() {};
 		action(const action& a) : piece(a.piece), last_pos(a.last_pos), new_pos(a.new_pos), act(a.act){}
 
 		class move;
 		class eat;
 	public:
 		virtual int apply(board &b){ 
-			auto proto = entries().find(act);
-			if (proto != entries().end() ) return proto->second->reinterpret(this).apply(b);
+			// auto proto = entries().find(act);
+			// if (proto != entries().end() ) return proto->second->reinterpret(this).apply(b);
 			return -1;
 		}
 	public:
@@ -39,9 +39,9 @@ class action {
 		unsigned new_pos;
 		char act;
 	protected:
-		typedef std::unordered_map<char, action*> prototype;
-		static prototype& entries() { static prototype m; return m; }
-		virtual action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) action(*a); }
+		// typedef std::unordered_map<char, action*> prototype;
+		// static prototype& entries() { static prototype m; return m; }
+		// virtual action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) action(*a); }
 
 };
 
@@ -57,8 +57,8 @@ public:
 		return apply_state;
 	}
 protected:
-	action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) move(*a); }
-	static __attribute__((constructor)) void init() { entries()['m'] = new move; }
+	// action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) move(*a); }
+	// static __attribute__((constructor)) void init() { entries()['m'] = new move; }
 
 };
 
@@ -72,8 +72,8 @@ public:
 		return apply_state;
 	}
 protected:
-	action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) eat(*a); }
-	static __attribute__((constructor)) void init() { entries()['e'] = new eat; }
+	// action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) eat(*a); }
+	// static __attribute__((constructor)) void init() { entries()['e'] = new eat; }
 
 
 };
