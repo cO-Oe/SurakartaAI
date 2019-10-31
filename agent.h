@@ -10,7 +10,7 @@
 #define last_pos first
 #define new_pos second
 using namespace std;
-// typedef pair<int, int> Pair;
+
 /*
 
 any rule for a player will write here
@@ -23,19 +23,18 @@ any rule for a player will write here
  24  25  26  27  28  29
  30  31  32  33  34  35
 
-
 */
 
 class agent {
 public:
-	agent(int piece = 0) :piece(piece) {
+	agent(int piece = 0) : piece(piece) {}
 
-	}
 public:
-	virtual void open_episode() {}
-	virtual void close_episode() {}
-	virtual action take_action(){return {}; }
+	virtual void open_episode(const string& flag = "") {}
+	virtual void close_episode(const string& flag = "") {}
+	virtual action take_action(board &b){return {}; }
 	int get_piece(){return piece;}
+
 protected:
 	int piece;
 };
@@ -50,17 +49,18 @@ public:
 		if (c=='W')
 			this->piece = 1;
 	}
+
 public:
-	int idle_step() {
-		return count_not_eat;
-	}
+	int idle_step() { return count_not_eat; }
+
 	int count_piece(board &b) {
 		int cnt = 0;
-		for (int i=0; i<36; i++) {
+		for (int i = 0; i < 36; i++) {
 			if(b(i) == piece) cnt++;
 		}
 		return cnt;
 	}
+
 public:
 	int search_up(board &before, int &pos, bool pass) {
 		this->count_step++;
@@ -93,25 +93,25 @@ public:
 		else 
 			return -1;
 	}
+
 	int search_down(board &before, int &pos, bool pass) {
 		before.reflect_vertical(pos);
 		int ans = search_up(before, pos, pass);
 		before.reflect_vertical(pos);
 		return ans;
 	}
+
 	int search_right(board &before, int &pos, bool pass) {
 		before.rotate_left(pos);
 		int ans = search_up(before, pos, pass);
-
 		before.rotate_right(pos);
-
 		return ans;
 	}
+
 	int search_left(board &before, int &pos, bool pass) {
 		before.rotate_right(pos);
 		int ans = search_up(before, pos, pass);
 		before.rotate_left(pos);
-
 		return ans;
 	}
 
@@ -134,7 +134,6 @@ public:
 		if ( search_left(before, pos, false) != -1) p.push_back(pos);  
 		pos = prev_pos; this->count_step = 0;
 
-
 		before(prev_pos) = this->piece;
 
 		if (p.empty())
@@ -142,6 +141,7 @@ public:
 		else
 			return p[0];//return ramdomly
 	}
+
 	vector<int> check_move(board &before, int pos) {
 		vector<int> ans;
 		ans.reserve(100);
@@ -159,7 +159,6 @@ public:
 		if (pos <= 35 && pos >= 30) 
 			dir[5] = 0, dir[6] = 0, dir[7] = 0;
 		
-
 		for (auto &d : dir) {
 			if (d == 0) continue;
 			if ( before(pos + d) == 0 ){
@@ -168,8 +167,8 @@ public:
 		}
 		return ans;
 	}
+
 	Pair eat_piece(board &before) {
-		Pair ans;
 		for (int i=0; i<36; i++) {
 			int tile = before(i);
 			if (tile == piece) {
@@ -182,6 +181,7 @@ public:
 		}
 		return make_pair(-1, -1);
 	}
+
 	Pair move_piece(board &before) {
 		vector< Pair > ans;
 		vector< int > move_pos;
@@ -200,6 +200,7 @@ public:
 		shuffle(ans.begin(), ans.end(), engine);
 		return ans[0];
 	}
+	
 	//check whether there are still pieces on board
 	int check_Piece_onBoard(board &before) {
 		bool find = 0;

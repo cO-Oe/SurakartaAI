@@ -13,6 +13,8 @@ Instructed by Professor I-Chen Wu
 #include "board.h"
 #include "action.h"
 #include "agent.h"
+#include "episode.h"
+#include "statistic.h"
 
 using namespace std;
 int main(int argc, char* argv[]) {
@@ -31,52 +33,45 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	statistic stat(total, block);
 
-	board b;
 	player env('B');//2
 	player play('W');//1
-	unsigned int i = 0; 
-	while (i++ < total) {
-		int idx = 0;
-		agent win;
 
-		while(true) {
+	while (!stat.is_finished()) {
 
-			if((idx % 2) ) {
-				action a = env.take_action(b);//2
+		board b;
+		play.open_episode("~:B");
+		env.open_episode("~:W");
 
-				if( a.apply(b) == -1) {
-					cout << b << '\n';//last board
-					win = play; break;
-				}
+		stat.open_episode("W:B");
+		episode& game = stat.back(); 
+
+		while ( true ) {
+			agent& who = game.take_turns(play, env);
+
+			action a = who.take_action(b);
+
+			game.apply_action(a);
+
+			if ( a.apply(b) == -1 ) {
+				cout << b << '\n'; //last board
+				break;
 			}
-			else {
-				action a = play.take_action(b);//1
-
-				if ( a.apply(b) == -1) {
-					cout << b << '\n';//last board
-					win = env; break;
-				}
-			}
-			
-			//check draw
-			if (env.idle_step() >= 25 && play.idle_step() >= 25) {
-				if (env.count_piece(b) > play.count_piece(b) ) {
-					win = env; break;
-				}
-				else if (play.count_piece(b) > env.count_piece(b)) {
-					win = play; break;
-				}
-			}
-
-			cout << b << '\n';
-			// sleep(4);
-			idx++;
+		
+		//	cout<< b << '\n';
 		}
-		if ( win.get_piece() != 0)
-			cout << "winner: " <<  win.get_piece() << '\n';
-		else
-			cout << "no winner, it's a draw.\n";
+
+		agent& win = game.last_turns(play, env);
+		string winner = (win.get_piece() == 1 ? "play" : "env" );
+
+		cout << "Winner:" << winner << '\n';
+
+		stat.close_episode(winner);
+
+		play.close_episode(winner);
+		env.close_episode(winner);
 	}
+	stat.show();
 	return 0;
 }
