@@ -1,4 +1,5 @@
 #pragma once
+
 #include<array>
 #include<iostream>
 #include<iomanip>
@@ -9,6 +10,7 @@ using namespace std;
 surakarta game board
 any change in board will write here
 */
+
 class board {
 public:
 	typedef array<int, 6> row;
@@ -19,12 +21,15 @@ public:
 			for (unsigned int j = 0; j < 6; j++) {
 				if (i <= 1) tile[i][j] = 1;
 				if (i <= 3 && i > 1) tile[i][j] = 0;
-				else if (i <= 5 && i >= 3) tile[i][j] = 2;
+				else if (i <= 5 && i > 3) tile[i][j] = 2;
 			}
 		}
 	}
+
 	int& operator()(int i) { return tile[ i / 6 ][ i % 6 ]; }
+
 	board& operator =(const board &b) = default;
+
 	/* 
 	piece:
 	0:no piece 
@@ -46,6 +51,7 @@ public:
 		// operator()(place_pos) = piece;
 		return 0;
 	}
+
 	int eat(int prev_pos, int place_pos, int piece) {
 		if (place_pos > 35 || place_pos < 0) return -1;
 		if ((*this)(place_pos) != (piece ^ 3) ) return -1;
@@ -59,6 +65,7 @@ public:
 		// operator()(place_pos) = piece;
 		return 0;
 	}
+
 	void reflect_vertical(int &pos) {
 		int x = pos / 6; int y = pos % 6;
 		pos = (5-x) * 6 + y;
@@ -68,6 +75,7 @@ public:
 			swap(tile[2][c], tile[3][c]);
 		}
 	}
+
 	void reflect_horizontal(int &pos) {
 		int x = pos / 6; int y = pos % 6;
 		pos = x * 6 + (5-y);
@@ -78,6 +86,7 @@ public:
 
 		}
 	}
+
 	void transpose(int &pos) {
 		int x = pos / 6; int y = pos % 6;
 		pos = y * 6 + x;
@@ -86,12 +95,12 @@ public:
 				swap(tile[r][c], tile[c][r]);
 			}
 		}
+	}
 
-	}
-	void rotate_right(int &pos) {transpose(pos); reflect_horizontal(pos);
-	}
-	void rotate_left(int &pos) {transpose(pos); reflect_vertical(pos);
-	}
+	void rotate_right(int &pos) {transpose(pos); reflect_horizontal(pos);}
+
+	void rotate_left(int &pos) {transpose(pos); reflect_vertical(pos);}
+
 public:
 			/*
 			" ┏━━━━━━━┓ ┏━━━━━━━┓  
@@ -101,9 +110,9 @@ public:
 			  ┗━━ 0 0 0 0 0 0 ━━┛
 			  ┏━━ 0 0 0 0 0 0 ━━┓
 			  ┃ ┏ 2 2 2 2 2 2 ┓ ┃
-              ┃ ┃ 2 2 2 2 2 2 ┃ ┃
-              ┃ ┗━━━┛ ┃ ┃ ┗━━━┛ ┃
-              ┗━━━━━━━┛ ┗━━━━━━━┛
+        ┃ ┃ 2 2 2 2 2 2 ┃ ┃
+        ┃ ┗━━━┛ ┃ ┃ ┗━━━┛ ┃
+        ┗━━━━━━━┛ ┗━━━━━━━┛
 			"
 		*/
 	friend ostream& operator<<(ostream& out, const board& b) {
@@ -140,11 +149,7 @@ public:
 		out << "┗━━━━━━━┛ ┗━━━━━━━┛" << '\n';
 		out << "+--------------------+" << '\n';
 		return out;
-	
 	}
-
-
-
 
 private:
 	grid tile;
