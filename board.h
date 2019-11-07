@@ -42,9 +42,9 @@ public:
 		if (place_pos > 35 || place_pos < 0) return -1;
 		if ((*this)(place_pos) != 0) return -1;
 
-		cout << piece << "'s chance.\n";
-		cout << "Move from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
-		<< place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
+		// cout << piece << "'s chance.\n";
+		// cout << "Move from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
+		// << place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
 
 		(*this)(place_pos) = piece;
 		(*this)(prev_pos) = 0;
@@ -56,9 +56,9 @@ public:
 		if (place_pos > 35 || place_pos < 0) return -1;
 		if ((*this)(place_pos) != (piece ^ 3) ) return -1;
 		
-		cout << piece << "'s chance.\n";
-		cout << "Eat from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
-		<< place_pos / 6 << ", " << place_pos % 6<< ")\n\n";
+		// cout << piece << "'s chance.\n";
+		// cout << "Eat from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
+		// << place_pos / 6 << ", " << place_pos % 6<< ")\n\n";
 
 		(*this)(place_pos) = piece;
 		(*this)(prev_pos) = 0;

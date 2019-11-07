@@ -214,16 +214,16 @@ public:
 	}
 
 public:
-	action& take_action(board &before) {
+	action take_action(board &before) {
 
-		if ( !check_Piece_onBoard(before) ) return *new action();//lose
+		if ( !check_Piece_onBoard(before) ) return action();//lose
 
 		//find whether can eat piece or not
 		Pair pos = eat_piece(before);
 		if (pos.last_pos != -1) {
 			//take eat_action
 			count_not_eat = 0;
-			return *new action::eat( piece, pos.last_pos, pos.new_pos );
+			return action::eat( piece, pos.last_pos, pos.new_pos );
 		}
 		else {
 			//take move_action
@@ -231,11 +231,11 @@ public:
 
 			if (pos.last_pos != -1) {
 				count_not_eat++;
-				return *new action::move( piece, pos.last_pos, pos.new_pos );
+				return action::move( piece, pos.last_pos, pos.new_pos );
 			}
 		}
 		//GameOver
-		return *new action();
+		return action();
 	}
 
 private:

@@ -19,10 +19,10 @@ Instructed by Professor I-Chen Wu
 using namespace std;
 int main(int argc, char* argv[]) {
 	cout << "Surakarta Demo: ";
-	// copy(argv, argv + argc, ostream_iterator<char *>(cout, " "));
+	copy(argv, argv + argc, ostream_iterator<char *>(cout, " "));
 	cout << "\n\n";
 
-	size_t total = 1, block = 0;
+	size_t total = 100, block = 0;
 	for (int i = 1; i < argc; i++) {
 		string para(argv[i]);
 		if (para.find("--total=") == 0) {
@@ -37,7 +37,6 @@ int main(int argc, char* argv[]) {
 
 	player env('B');//2
 	player play('W');//1
-
 	while (!stat.is_finished()) {
 
 		board b;
@@ -46,32 +45,37 @@ int main(int argc, char* argv[]) {
 
 		stat.open_episode("W:B");
 		episode& game = stat.back(); 
-
+		int cnt = 0;
 		while ( true ) {
+			//player first
 			agent& who = game.take_turns(play, env);
 
 			action a = who.take_action(b);
 
-			game.apply_action(a);
 
-			if ( a.apply(b) == -1 ) {
-				cout << b << '\n'; //last board
+			if ( a.apply(b) == -1) {
+				// cout << b << '\n'; //last board
 				break;
 			}
-		
-		//	cout<< b << '\n';
-		}
+			cnt++;
+			game.apply_action(a);
 
+			// if ( !game.apply_action(a) ) {
+			// 	cout << game.state();
+			// 	break;
+			// }
+
+			// cout << b << '\n';
+		}
 		agent& win = game.last_turns(play, env);
 		string winner = (win.get_piece() == 1 ? "play" : "env" );
-
-		cout << "Winner:" << winner << '\n';
+		// cout << "Winner:" << winner << '\n';
 
 		stat.close_episode(winner);
 
 		play.close_episode(winner);
 		env.close_episode(winner);
 	}
-	stat.show();
+	// stat.show();
 	return 0;
 }

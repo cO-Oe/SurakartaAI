@@ -22,8 +22,8 @@ class action {
 
 	public:
 		virtual int apply(board &b){ 
-			// auto proto = entries().find(act);
-			// if (proto != entries().end() ) return proto->second->reinterpret(this).apply(b);
+			auto proto = entries().find(act);
+			if (proto != entries().end() ) return proto->second->reinterpret(this).apply(b);
 			return -1;
 		}
 
@@ -41,9 +41,9 @@ class action {
 		char act;
 
 	protected:
-		// typedef std::unordered_map<char, action*> prototype;
-		// static prototype& entries() { static prototype m; return m; }
-		// virtual action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) action(*a); }
+		typedef std::unordered_map<char, action*> prototype;
+		static prototype& entries() { static prototype m; return m; }
+		virtual action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) action(*a); }
 
 };
 
@@ -60,8 +60,8 @@ public:
 	}
 
 protected:
-	// action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) move(*a); }
-	// static __attribute__((constructor)) void init() { entries()['m'] = new move; }
+	action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) move(*a); }
+	static __attribute__((constructor)) void init() { entries()['m'] = new move; }
 
 };
 
@@ -77,13 +77,8 @@ public:
 	}
 	
 protected:
-<<<<<<< HEAD
-	// action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) eat(*a); }
-	// static __attribute__((constructor)) void init() { entries()['e'] = new eat; }
 
-
-=======
 	action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) eat(*a); }
 	static __attribute__((constructor)) void init() { entries()['e'] = new eat; }
->>>>>>> ae96224e982bcaa98f2aa1320a1a58c01cf83e34
+
 };

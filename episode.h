@@ -34,8 +34,11 @@ public:
 		ep_close = { tag, millisec() };
 	}
 
-  void apply_action(action move) {
+  bool apply_action(action move) {
+  		// if ( move.apply(state()) == -1) return false;
+
 		ep_moves.emplace_back(move, 0, millisec() - ep_time);
+		return true;
 	}
 
   agent& take_turns(agent& play, agent& env) {
@@ -44,42 +47,62 @@ public:
 	}
 
 	agent& last_turns(agent& play, agent& env) {
-		return take_turns(play, env);
+		agent &tmp = take_turns(play, env);
+		who_win =  ( tmp.get_piece() == 1) ? "play":"env" ;
+		return tmp;
 	}
 
 
 public:
-	unsigned step (unsigned who = 0) const {
-		unsigned size = 0;
+	unsigned step (char who = 'n') const {
+		// unsigned size = 0;
+		int siz = ep_moves.size();
 		switch (who) {
-		case 1:
-			for ( size_t i = 0; i < ep_moves.size(); i+=2 ) 
-				if ( ep_moves[i].code.get_act() == 'e' )
-					size++;
-			break;
-		case 2:
-			for ( size_t i = 0; i < ep_moves.size(); i+=2 ) 
-				if ( ep_moves[i].code.get_act() == 'm' )
-					size++;
-			break;
-		case 3:
-			for ( size_t i = 1; i < ep_moves.size(); i+=2 ) 
-				if ( ep_moves[i].code.get_act() == 'e' )
-					size++;
-			break;
-		case 4:
-			for ( size_t i = 1; i < ep_moves.size(); i+=2 ) 
-				if ( ep_moves[i].code.get_act() == 'm' )
-					size++;
-			break;
+			case 'p': return (siz / 2 ) + ((siz % 2) ? 1 : 0);
+			case 'e': return siz / 2;
+		// case 1:
+		// 	for ( size_t i = 0; i < ep_moves.size(); i+=2 ) 
+		// 		if ( ep_moves[i].code.get_act() == 'e' )
+		// 			size++;
+		// 	break;
+		// case 2:
+		// 	for ( size_t i = 0; i < ep_moves.size(); i+=2 ) 
+		// 		if ( ep_moves[i].code.get_act() == 'm' )
+		// 			size++;
+		// 	break;
+		// case 3:
+		// 	for ( size_t i = 1; i < ep_moves.size(); i+=2 ) 
+		// 		if ( ep_moves[i].code.get_act() == 'e' )
+		// 			size++;
+		// 	break;
+		// case 4:
+		// 	for ( size_t i = 1; i < ep_moves.size(); i+=2 ) 
+		// 		if ( ep_moves[i].code.get_act() == 'm' )
+		// 			size++;
+		// 	break;
 		default :
-			size = ep_moves.size(); // 'int' is important for handling 0
+			return siz; // 'int' is important for handling 0
 		}
-		return size;
 	}
 
-	time_t time () const {
-		return ep_close.when - ep_open.when;
+	time_t time (char who = 'n') const {
+		time_t time = 0;
+		size_t i = 0;
+		switch(who) {
+			case 'p':
+				i = 0;
+				while( i < ep_moves.size() ) time += ep_moves[i].time, i += 2;
+				break;
+			case 'e':
+				i = 1;
+				while( i < ep_moves.size() ) time += ep_moves[i].time, i += 2;
+				break;
+
+			default: 
+				time = ep_close.when - ep_open.when;
+				break;
+		}
+		return time;
 	}
 
 protected:  
@@ -108,7 +131,7 @@ struct meta {
 	};
 
 	static board initial_state() {
-		return {};
+		return board();
 	}
 
 	static time_t millisec() {
@@ -120,6 +143,7 @@ public:
 	board ep_state;
 private:
 	vector<move> ep_moves;
+	string who_win;
 	time_t ep_time;
 	meta ep_open;
 	meta ep_close;
