@@ -64,6 +64,7 @@ public:
 public:
 	int search_up(board &before, int &pos, bool pass) {
 		this->count_step++;
+		
 		// has run a circle
 		if (this->count_step >= 25) {
 			this->count_step = 0;
@@ -116,6 +117,7 @@ public:
 	}
 
 public:
+
 	int check_eat(board &before, int pos) {
 		if (pos == 0 || pos == 5 || pos == 30 || pos == 35)
 			return -1;
@@ -141,7 +143,7 @@ public:
 		else
 			return p[0];//return ramdomly
 	}
-
+//check whether the moves are available
 	vector<int> check_move(board &before, int pos) {
 		vector<int> ans;
 		ans.reserve(100);
@@ -183,13 +185,12 @@ public:
 	}
 
 	Pair move_piece(board &before) {
-		vector< Pair > ans;
-		vector< int > move_pos;
+		vector< Pair > ans; //store available moves pairs(now and next)
+		vector< int > move_pos;//store available next move 
 
 		for (int now_pos = 0; now_pos < 36; now_pos++) {
 			int tile = before(now_pos);
 			if (tile == piece) {		
-				//random select a move and save
 				move_pos = check_move(before, now_pos);
 				if ( !move_pos.empty() ) {
 					for (auto &next_pos : move_pos)
@@ -197,12 +198,13 @@ public:
 				}
 			}
 		}
+		//random select a move
 		shuffle(ans.begin(), ans.end(), engine);
 		return ans[0];
 	}
 	
 	//check whether there are still pieces on board
-	int check_Piece_onBoard(board &before) {
+	int check_Piece_onBoard (board &before) const {
 		bool find = 0;
 		for (int i=0; i<36; i++) {
 			if ( before(i) == piece){
@@ -214,6 +216,7 @@ public:
 	}
 
 public:
+//greedy method that always find eat step first
 	action take_action(board &before) {
 
 		if ( !check_Piece_onBoard(before) ) return action();//lose
@@ -243,8 +246,3 @@ private:
 	int count_not_eat;
 	default_random_engine engine;
 };
-/*
-*this == b
-
-operator==(b)
-*/

@@ -23,9 +23,10 @@ public:
 		  count(0) {}
 
 public:
+	//show winrate and operates per second (time not completed)
 	void show () const {
 		int blk = block;
-		// size_t play_eat = 0, play_move = 0, env_eat = 0, env_move = 0;
+		
 		size_t sop = 0, pop = 0, eop = 0;
 		time_t sdu = 0, pdu = 0, edu = 0;
 		auto it = data.end();
@@ -38,15 +39,8 @@ public:
 			player_win += (ep.who_win == "play") ? 1: 0;
 
 			sop += ep.step();
-			// pop += (ep.step() / 2 ) + ((ep.step() % 2) ? 1 : 0);
-			// eop += ep.step() / 2;
 			pop += ep.step('p');
 			eop += ep.step('e');
-			
-			// play_eat += ep.step(1);
-			// play_move += ( ep.step() / 2 )+ ( ep.step() % 2 );
-			// env_eat += ep.step(3);
-			// env_move += ep.step() / 2;
 			
 			sdu += ep.time();
 			pdu += ep.time('p');
@@ -64,28 +58,25 @@ public:
 
 
 		cout << "-------------------------------------\n\n";
-
-		// cout << "Steps:" << sop/blk << '\n';
-		// cout << "Player eats:" << play_eat/blk << '\n';
-		// cout << "Player moves:" << play_move/blk << '\n';
-		// cout << "Env eats:" << env_eat/blk << '\n';
-		// cout << "Env moves:" << env_move/blk << '\n';
-		// cout << "Time:" << sdu/blk << '\n';
 	}
 
+	//check if games cnt == total (finished) 
   bool is_finished() { return count >= total; }
 
+	//append an new episode
   void open_episode(const string& flag = "") {
 		count++;
 		data.emplace_back();
 		data.back().open_episode(flag);
 	}
 
+	//episode end and show stats
   void close_episode(const std::string& flag = "") {
 		data.back().close_episode(flag);
 		if (count % block == 0) show();
 	}
 
+	//access the last episode
   episode& back() { return data.back(); }
 private:
 	unsigned int total;

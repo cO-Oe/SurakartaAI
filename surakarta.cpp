@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 
 		stat.open_episode("W:B");
 		episode& game = stat.back(); 
-		int cnt = 0;
+		
 		while ( true ) {
 			//player first
 			agent& who = game.take_turns(play, env);
@@ -57,15 +57,8 @@ int main(int argc, char* argv[]) {
 				// cout << b << '\n'; //last board
 				break;
 			}
-			cnt++;
 			game.apply_action(a);
 
-			// if ( !game.apply_action(a) ) {
-			// 	cout << game.state();
-			// 	break;
-			// }
-
-			// cout << b << '\n';
 		}
 		agent& win = game.last_turns(play, env);
 		string winner = (win.get_piece() == 1 ? "play" : "env" );

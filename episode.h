@@ -34,6 +34,7 @@ public:
 		ep_close = { tag, millisec() };
 	}
 
+	//save every action in episode
   bool apply_action(action move) {
   		// if ( move.apply(state()) == -1) return false;
 
@@ -41,11 +42,13 @@ public:
 		return true;
 	}
 
+	//decide whose turn
   agent& take_turns(agent& play, agent& env) {
 		ep_time = millisec();
 		return ((step() + 1) % 2) ? play : env;
 	}
 
+	//see which player moves last -> winner
 	agent& last_turns(agent& play, agent& env) {
 		agent &tmp = take_turns(play, env);
 		who_win =  ( tmp.get_piece() == 1) ? "play":"env" ;
@@ -54,37 +57,19 @@ public:
 
 
 public:
+	//count moves of each player (cnt and type)
 	unsigned step (char who = 'n') const {
 		// unsigned size = 0;
 		int siz = ep_moves.size();
 		switch (who) {
 			case 'p': return (siz / 2 ) + ((siz % 2) ? 1 : 0);
 			case 'e': return siz / 2;
-		// case 1:
-		// 	for ( size_t i = 0; i < ep_moves.size(); i+=2 ) 
-		// 		if ( ep_moves[i].code.get_act() == 'e' )
-		// 			size++;
-		// 	break;
-		// case 2:
-		// 	for ( size_t i = 0; i < ep_moves.size(); i+=2 ) 
-		// 		if ( ep_moves[i].code.get_act() == 'm' )
-		// 			size++;
-		// 	break;
-		// case 3:
-		// 	for ( size_t i = 1; i < ep_moves.size(); i+=2 ) 
-		// 		if ( ep_moves[i].code.get_act() == 'e' )
-		// 			size++;
-		// 	break;
-		// case 4:
-		// 	for ( size_t i = 1; i < ep_moves.size(); i+=2 ) 
-		// 		if ( ep_moves[i].code.get_act() == 'm' )
-		// 			size++;
-		// 	break;
 		default :
 			return siz; // 'int' is important for handling 0
 		}
 	}
 
+	//count time cost in an episode
 	time_t time (char who = 'n') const {
 		time_t time = 0;
 		size_t i = 0;

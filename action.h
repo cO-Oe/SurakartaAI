@@ -11,7 +11,7 @@ class action {
 	public:
 		action(int piece = -1, int last_pos = -1, int new_pos = -1, char act = 'n') : 
 		piece(piece), last_pos(last_pos), new_pos(new_pos), act(act) {}
-
+		//default destructor
 		virtual ~action() {};
 
 
@@ -22,15 +22,17 @@ class action {
 
 	public:
 		virtual int apply(board &b){ 
+			//find what action it act
 			auto proto = entries().find(act);
+			//reinterpret action to new action
 			if (proto != entries().end() ) return proto->second->reinterpret(this).apply(b);
 			return -1;
 		}
 
 	public:
-		Pair get_positions() { return Pair(last_pos, new_pos); }
+		Pair get_positions() const{ return Pair(last_pos, new_pos); }
 
-		unsigned get_piece() { return piece; }
+		unsigned get_piece() const { return piece; }
 
 		char get_act() const { return act; }
 
@@ -41,7 +43,7 @@ class action {
 		char act;
 
 	protected:
-		typedef std::unordered_map<char, action*> prototype;
+		typedef std::unordered_map<char, action*> prototype; //map that store two types of actin
 		static prototype& entries() { static prototype m; return m; }
 		virtual action& reinterpret(const action* a) const { return *new (const_cast<action*>(a)) action(*a); }
 
@@ -54,6 +56,7 @@ public:
 
 public:
 	int apply(board &b) {
+		//if failed return -1
 		int apply_state = b.move(last_pos, new_pos, piece);
 
 		return apply_state;
@@ -72,6 +75,7 @@ public:
 
 public:
 	int apply(board &b) {
+		//if failed return -1
 		int apply_state = b.eat(last_pos, new_pos, piece);
 		return apply_state;
 	}
