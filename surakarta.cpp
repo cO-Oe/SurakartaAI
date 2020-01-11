@@ -15,6 +15,9 @@ Instructed by Professor I-Chen Wu
 #include "agent.h"
 #include "episode.h"
 #include "statistic.h"
+#include "Node.h"
+#include "MonteCarlo.h"
+
 
 using namespace std;
 int main(int argc, char* argv[]) {
@@ -35,8 +38,9 @@ int main(int argc, char* argv[]) {
 
 	statistic stat(total, block);
 
-	player env('B');//2
-	player play('W');//1
+	player play('B');//2
+	player env('W');//1
+	int ct = 0;
 	while (!stat.is_finished()) {
 
 		board b;
@@ -58,7 +62,7 @@ int main(int argc, char* argv[]) {
 				break;
 			}
 			game.apply_action(a);
-
+			cout << b << '\n';
 		}
 		agent& win = game.last_turns(play, env);
 		string winner = (win.get_piece() == 1 ? "play" : "env" );
@@ -68,6 +72,9 @@ int main(int argc, char* argv[]) {
 
 		play.close_episode(winner);
 		env.close_episode(winner);
+		break;
+		// if (ct++ >= 2)
+			// break;
 	}
 	// stat.show();
 	return 0;

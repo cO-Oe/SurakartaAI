@@ -6,6 +6,8 @@
 #include<algorithm>
 #include "board.h"
 #include "action.h"
+#include "Node.h"
+#include "MonteCarlo.h"
 
 #define last_pos first
 #define new_pos second
@@ -62,6 +64,7 @@ public:
 	}
 
 public:
+	/*
 	int search_up(board &before, int &pos, bool pass) {
 		this->count_step++;
 		
@@ -214,29 +217,65 @@ public:
 		if(find) return 1;
 		else return 0;
 	}
+	*/
 
 public:
 //greedy method that always find eat step first
 	action take_action(board &before) {
 
-		if ( !check_Piece_onBoard(before) ) return action();//lose
-
+		if ( !before.check_Piece_onBoard(piece) ) return action();//lose
+		// if (!check_Piece_onBoard(before)) return action();
 		//find whether can eat piece or not
-		Pair pos = eat_piece(before);
-		if (pos.last_pos != -1) {
+
+		MonteCarloTree tree;
+		tree.reset(before);
+
+		int simulationtime = 1000;
+		int count_sim = 0;
+		while (count_sim < simulationtime) {
+			tree.tree_policy();
+			count_sim++;
+		}
+
+		int offset = tree.root->best_child();
+		// cout << tree.root_board << '\n';
+
+		Node* tmp = tree.root->child;
+		Pair best_move = (tmp + offset)->move;
+		cout << "piece: " << piece << '\n';
+		cout << "move from " << best_move.first/6 << ' ' << best_move.first%6 << " to " << best_move.second/6 << ' ' << best_move.second%6 << '\n';
+		// before.move(best_move.first, best_move.second, b.take_turn());
+		tree.clear();
+		return action::move(piece, best_move.first, best_move.second);
+		
+
+
+		//  --------Greedy Policy-------- //
+		/*
+		vector<Pair> pos = before.eat_piece(piece);
+		// Pair pos = eat_piece(before);
+		
+		if (!pos.empty()) {
 			//take eat_action
 			count_not_eat = 0;
-			return action::eat( piece, pos.last_pos, pos.new_pos );
+			return action::eat( piece, pos[0].last_pos, pos[0].new_pos );
 		}
 		else {
 			//take move_action
-			pos = move_piece(before);
-
-			if (pos.last_pos != -1) {
+			pos = before.move_piece(piece);
+			// pos = move_piece(before);
+			if ( !pos.empty() ) {
 				count_not_eat++;
-				return action::move( piece, pos.last_pos, pos.new_pos );
+				
+				random_device rv;
+				default_random_engine engine(rv());
+
+				shuffle(pos.begin(), pos.end(), engine);
+				return action::move( piece, pos[0].last_pos, pos[0].new_pos );
 			}
 		}
+		*/
+
 		//GameOver
 		return action();
 	}
@@ -244,5 +283,4 @@ public:
 private:
 	int count_step;
 	int count_not_eat;
-	default_random_engine engine;
 };
