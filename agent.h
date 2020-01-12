@@ -76,7 +76,7 @@ public:
 		MonteCarloTree tree;
 		tree.reset(before);
 
-		int simulationtime = 1000;
+		int simulationtime = 2000;
 		int count_sim = 0;
 		while (count_sim < simulationtime) {
 			tree.tree_policy();
@@ -88,7 +88,7 @@ public:
 
 		Node* tmp = tree.root->child;
 		Pair best_move = (tmp + offset)->move;
-		// tree.root->showchild();
+		tree.root->showchild();
 
 		cout << "piece: " << piece << '\n';
 		cout << "move from " << best_move.first/6 << ' ' << best_move.first%6 << " to " << best_move.second/6 << ' ' << best_move.second%6 << '\n';

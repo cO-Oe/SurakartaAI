@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 	copy(argv, argv + argc, ostream_iterator<char *>(cout, " "));
 	cout << "\n\n";
 
-	size_t total = 100, block = 0;
+	size_t total = 20, block = 0;
 	for (int i = 1; i < argc; i++) {
 		string para(argv[i]);
 		if (para.find("--total=") == 0) {
@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
 
 	player play('B');//0
 	envir env('W');//1
+	
 	int ct = 0;
 	while (!stat.is_finished()) {
 
