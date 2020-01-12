@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 
 		play.close_episode(winner);
 		env.close_episode(winner);
-		break;
+		// break;
 		// if (ct++ >= 2)
 			// break;
 	}
