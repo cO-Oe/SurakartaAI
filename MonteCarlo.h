@@ -38,7 +38,7 @@ public:
 		for (int i=0; i < n->c_size; i++) {
 			Node* ch = n->child + i;
 			
-			double score = ( ch->win / ch->count ) + UCB_weight * sqrt( log(n->count) /(double)(ch->count) );
+			double score = ( ch->win / (ch->count+1.0) ) + UCB_weight * sqrt( log(n->count) /(double)(ch->count+1.0) );
 			
 			if ( (score <= (max_ans+eps) ) && (score >= (max_ans-eps) ) ) {
 				same_score[idx] = i;
@@ -86,11 +86,19 @@ public:
 
 		if(last.c_size != 0) {
 			current = UCB(&last);
+			// current = ;
 			path.push_back(current);
+			// cout << "from:\n";
+			// cout << b << '\n';
 			b.move(current->move.first, current->move.second, current->color);
+			// cout << "to:"<<"\n";
+			// cout << b << '\n';
 		}
-		else 
+		else {
+			// cout << b << '\n';
+			// cout << "no child!\n";
 			return false;
+		}
 		//b.getv(b_onego, w_onego, twogo, bsize, wsize, tsize);
 
 		double result;
@@ -107,7 +115,7 @@ public:
 		int cnt = 0;
 		while(true) {
 			cnt++;
-			if (cnt > 1000) {
+			if (cnt > 100) {
 
 				// cout << "More than 1000 steps\n";
 				// cout << b << '\n';
@@ -116,20 +124,29 @@ public:
 			}
 
 			int color = b.take_turn();
-
-			int tmp;
-			if (color==0) 
-				tmp = 2;
-			else
-				tmp = 1;
-			vector<Pair> av = b.get_available_move(tmp);
-		
-			if (av.empty())
+			vector<Pair> ea = b.eat_piece(color);
+			vector<Pair> mv = b.move_piece(color);
+			// vector<Pair> av = b.get_available_move(color);
+			if (!ea.empty()) {
+				shuffle(ea.begin(), ea.end(), engine);
+				b.move(ea[0].first, ea[0].second, color);
+				// cout << "simulation:\n";
+				// cout << b << '\n';
+			}
+			else if (!mv.empty()){
+				shuffle(mv.begin(), mv.end(), engine);
+				b.move(mv[0].first, mv[0].second, color);
+				// cout << "simulation:\n";
+				// cout << b << '\n';
+			}
+			else{
+				// cout << color << " can't move at all\n";
 				return color;//win
+			}
 
-			shuffle(av.begin(), av.end(), engine);
+			// shuffle(av.begin(), av.end(), engine);
 
-			b.move(av[0].first, av[0].second, color);
+			// b.move(av[0].first, av[0].second, color);
 
 		}
 
@@ -139,12 +156,15 @@ public:
 		root = new Node;
 		root->color = root_board.take_turn();
 		root->move = {-1, -1};
-		root->count = 1;
-		root->expand(b);
+		root->count = 0;
+		root->win = 0;
+		root->child=NULL;
+		// root->expand(b);
 
 	}
 	void clear() {
 		if (root!=NULL) delete root;
 	}
+
 
 };

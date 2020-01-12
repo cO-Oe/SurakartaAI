@@ -38,8 +38,8 @@ int main(int argc, char* argv[]) {
 
 	statistic stat(total, block);
 
-	player play('B');//2
-	player env('W');//1
+	player play('B');//0
+	envir env('W');//1
 	int ct = 0;
 	while (!stat.is_finished()) {
 
@@ -63,7 +63,9 @@ int main(int argc, char* argv[]) {
 			}
 			game.apply_action(a);
 			cout << b << '\n';
+			// if (++ct > 2) break;
 		}
+		// cout << b.step << '\n';
 		agent& win = game.last_turns(play, env);
 		string winner = (win.get_piece() == 1 ? "play" : "env" );
 		// cout << "Winner:" << winner << '\n';

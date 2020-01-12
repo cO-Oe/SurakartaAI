@@ -24,21 +24,25 @@ public:
 	void init_Node(Pair m, int piece) {
 		color = piece;
 		move = m;
-		count = 1;
+		count = 0;
 	    win = 0;
 		//means = 0.5;
 		c_size = 0;
 		child = NULL;
 	}
 	void addresult(double result) {
-		if ( (result > 0 && color==BLACK) || (result == 0 && color==WHITE) ) {
+		if (result == 0.5)
+			count++;
+		else if ( (result > 0 && color==BLACK) || (result == 0 && color==WHITE) ) {
+			count++;
 			win++;
 			//means = (means*count+1.00)/(count+1);
 		}
+		else
+			count++;
 	//	else
 			//means = (means*count)/(count+1);
 
-		count++;
 	}
 	void expand(board &b) {
 
@@ -50,12 +54,8 @@ public:
 			// if (b.check(i, c))
 				// c_size++;
 		// }
-		int tmp;
-		if (c==0)
-			tmp = 2;
-		else
-			tmp = 1;
-		vector<Pair> mv = b.get_available_move(tmp);
+
+		vector<Pair> mv = b.get_available_move(c);
 
 		c_size = mv.size();
 
@@ -95,9 +95,13 @@ public:
 		return ind;
 	}
 	void showchild() {
+		cerr << setw(6) <<"from:";
+		cerr << setw(10) << "to:";
+		cerr << "  win rate     count\n";
 		for(int i=0; i < c_size; i++) {
-			if (child[i].count > 5) {
-				//cerr << transform_vertex( (int)child[i].place) << ' ' << child[i].win/child[i].count << ' ' << child[i].count << ' ';
+			if (child[i].count >= 0) {
+				cerr << "(" << child[i].move.first/6 << ", "<< child[i].move.first%6  << ") to (" << child[i].move.second/6 << ", " <<child[i].move.second%6 << ")  " 
+				<< child[i].win/child[i].count << ' ' << child[i].count << ' ';
 				cerr << "\n\n";
 			}
 		}

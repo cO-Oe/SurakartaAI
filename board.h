@@ -27,11 +27,13 @@ public:
 		step = 0;
 		for (unsigned int i = 0; i < 6; i++) {
 			for (unsigned int j = 0; j < 6; j++) {
-				if (i <= 1) tile[i][j] = 1;
-				if (i <= 3 && i > 1) tile[i][j] = 0;
-				else if (i <= 5 && i > 3) tile[i][j] = 2;
+				if (i <= 1) tile[i][j] = 0;
+				if (i <= 3 && i > 1) tile[i][j] = 9;
+				else if (i <= 5 && i > 3) tile[i][j] = 1;
 			}
 		}
+		// tile[1][1] = 0;
+		// tile[3][3] = 0;
 	}
 
 	int& operator()(int i) { return tile[ i / 6 ][ i % 6 ]; }
@@ -41,7 +43,7 @@ public:
 	double judge() {
 		int b = 0, w = 0;
 		for (int i=0; i<36; i++) {
-			if ( (*this)(i) == 2)
+			if ( (*this)(i) == 0)
 				b++;
 			else if ( ((*this)(i) == 1) )
 				w++;
@@ -72,7 +74,7 @@ public:
 		}
 
 		if ( (*this)(pos) == piece) return -1;
-		else if( (*this)(pos) == (piece ^ 3)) {
+		else if( (*this)(pos) == (!piece)) {
 			if(pass)
 				return 1;
 			else
@@ -122,7 +124,7 @@ public:
 		if (pos == 0 || pos == 5 || pos == 30 || pos == 35)
 			return -1;
 		//search four way and return position when have eatable siece
-		(*this)(pos) = 0;
+		(*this)(pos) = 9;
 
 		int prev_pos = pos;
 		int ans = -1;
@@ -165,7 +167,7 @@ public:
 		
 		for (auto &d : dir) {
 			if (d == 0) continue;
-			if ( (*this)(pos + d) == 0 ){
+			if ( (*this)(pos + d) == 9 ){
 				ans.push_back(pos + d);
 			}
 		}
@@ -217,9 +219,9 @@ public:
 	vector<Pair> get_available_move(const int piece) {
 		vector<Pair> mv = move_piece(piece);
 		vector<Pair> ea = eat_piece(piece);
-		mv.insert(mv.end(), ea.begin(), ea.end());
+		ea.insert(ea.end(), mv.begin(), mv.end());
 		
-		return mv;
+		return ea;
 	}		
 
 	int check_Piece_onBoard (const int piece)  {
@@ -245,7 +247,7 @@ public:
 		// << place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
 
 		(*this)(place_pos) = piece;
-		(*this)(prev_pos) = 0;
+		(*this)(prev_pos) = 9;
 		step++;
 		// cout << (*this) << '\n';
 
@@ -255,14 +257,14 @@ public:
 
 	int eat(int prev_pos, int place_pos, int piece) {
 		if (place_pos > 35 || place_pos < 0) return -1;
-		if ((*this)(place_pos) != (piece ^ 3) ) return -1;
+		if ((*this)(place_pos) != (!piece) ) return -1;
 		
 		// cout << piece << "'s chance.\n";
 		// cout << "Eat from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
 		// << place_pos / 6 << ", " << place_pos % 6<< ")\n\n";
 
 		(*this)(place_pos) = piece;
-		(*this)(prev_pos) = 0;
+		(*this)(prev_pos) = 9;
 		step++;
 		// cout << (*this) << '\n';
 		// operator()(place_pos) = piece;
