@@ -77,27 +77,35 @@ public:
 		}
 	}
 	bool tree_policy() {
+		// cout << "root board: \n";
+		// cout << root_board << "\n\n";
+
+		// root->showchild();
 		board b;
 		b = root_board;
 		select(b);
 		Node &last = *(path.back());
 		Node *current;
-		last.expand(b);
+		if (last.c_size==0 && last.count > 0){
 
-		if(last.c_size != 0) {
-			current = UCB(&last);
-			// current = ;
-			path.push_back(current);
-			// cout << "from:\n";
-			// cout << b << '\n';
-			b.move(current->move.first, current->move.second, current->color);
-			// cout << "to:"<<"\n";
-			// cout << b << '\n';
-		}
-		else {
-			// cout << b << '\n';
-			// cout << "no child!\n";
-			return false;
+			last.expand(b);
+
+			if(last.c_size != 0) {
+				current = UCB(&last);
+				// current = ;
+				path.push_back(current);
+				// cout << "from:\n";
+				// cout << b << '\n';
+				b.move(current->move.first, current->move.second, current->color);
+				// cout << "to:"<<"\n";
+				// cout << b << '\n';
+			}
+			else {
+				// cout << b << '\n';
+				// cout << "no child!\n";
+				backpropogate(b, !last.color);
+				return false;
+			}
 		}
 		//b.getv(b_onego, w_onego, twogo, bsize, wsize, tsize);
 
@@ -113,6 +121,8 @@ public:
 		default_random_engine engine(rd());
 
 		int cnt = 0;
+		// cout << "simulation start:\n";
+
 		while(true) {
 			cnt++;
 			if (cnt > 100) {
@@ -130,14 +140,17 @@ public:
 			if (!ea.empty()) {
 				shuffle(ea.begin(), ea.end(), engine);
 				b.move(ea[0].first, ea[0].second, color);
-				// cout << "simulation:\n";
-				// cout << b << '\n';
+				//cout << "simulation:\n";
+				//cout << "eat from " << ea[0].first << "to " << ea[0].second << '\n';
+				//cout << b << '\n';
 			}
 			else if (!mv.empty()){
 				shuffle(mv.begin(), mv.end(), engine);
 				b.move(mv[0].first, mv[0].second, color);
-				// cout << "simulation:\n";
-				// cout << b << '\n';
+				//cout << "simulation:\n";
+				//cout << "move from " << mv[0].first << "to " << mv[0].second << '\n';
+
+				//cout << b << '\n';
 			}
 			else{
 				// cout << color << " can't move at all\n";
@@ -159,7 +172,8 @@ public:
 		root->count = 0;
 		root->win = 0;
 		root->child=NULL;
-		// root->expand(b);
+		root->c_size = 0;
+		root->expand(b);
 
 	}
 	void clear() {

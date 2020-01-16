@@ -32,8 +32,8 @@ public:
 				else if (i <= 5 && i > 3) tile[i][j] = 1;
 			}
 		}
-		// tile[1][1] = 0;
-		// tile[3][3] = 0;
+		// tile[2][0] = 0;
+		// tile[0][2] = 1;
 	}
 
 	int& operator()(int i) { return tile[ i / 6 ][ i % 6 ]; }

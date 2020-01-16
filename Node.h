@@ -45,7 +45,7 @@ public:
 
 	}
 	void expand(board &b) {
-
+		// cout << "expand node!\n\n";
 		// int c = !b.take_turn();
 		int c = b.take_turn();
 		c_size = 0;

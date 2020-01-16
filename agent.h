@@ -76,7 +76,7 @@ public:
 		MonteCarloTree tree;
 		tree.reset(before);
 
-		int simulationtime = 2000;
+		int simulationtime = 5000;
 		int count_sim = 0;
 		while (count_sim < simulationtime) {
 			tree.tree_policy();
