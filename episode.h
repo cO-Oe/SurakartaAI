@@ -19,7 +19,7 @@ class episode {
 friend class statistic;
 
 public:
-	episode() : ep_state(initial_state()), ep_time(0) { ep_moves.reserve(10000); }
+	episode() : ep_state(initial_state()), ep_time(0) { ep_moves.reserve(1000); }
 
 public:
 	board& state() { return ep_state; }
@@ -28,10 +28,12 @@ public:
 
   void open_episode(const string& tag) {
 		ep_open = { tag, millisec() };
+		//cout << "1 : " << millisec() << ' ' << ep_open.when << '\n';
 	}
 
 	void close_episode(const string& tag) {
 		ep_close = { tag, millisec() };
+		//cout << "2 : " << millisec() << ' ' << ep_close.when << '\n';
 	}
 
 	//save every action in episode
@@ -39,6 +41,7 @@ public:
   		// if ( move.apply(state()) == -1) return false;
 
 		ep_moves.emplace_back(move, 0, millisec() - ep_time);
+		//cout << "test : " << millisec() - ep_time << '\n';
 		return true;
 	}
 
@@ -49,12 +52,12 @@ public:
 	}
 
 	//see which player moves last -> winner
-	agent& last_turns(agent& play, agent& env) {
+	agent& last_turns(agent& play, agent& env, board& b) {
 		agent &tmp = take_turns(play, env);
 		who_win =  ( tmp.get_piece() == 1) ? "play":"env" ;
+		win_piece = tmp.count_piece(b);
 		return tmp;
 	}
-
 
 public:
 	//count moves of each player (cnt and type)
@@ -129,6 +132,7 @@ public:
 private:
 	vector<move> ep_moves;
 	string who_win;
+	int win_piece;
 	time_t ep_time;
 	meta ep_open;
 	meta ep_close;

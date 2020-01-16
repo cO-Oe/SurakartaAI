@@ -27,12 +27,13 @@ public:
 	void show () const {
 		int blk = block;
 		
-		cout << "#Game     #Winner     #Moves          #time\n";
+		cout << "#Game     #Winner     #left_pieces     #Moves     #player_time     #env_time\n";
 
 		int game_id = 1;
 		cout << setiosflags(ios::right);
 		for ( auto &it : data ) {
-			cout << setw(5) << game_id++ << setw(12) << it.who_win << setw(11) << it.ep_moves.size() << setw(11) << it.time() << "(ms)" << '\n';
+			cout << setw(5) << game_id++ << setw(12) <<  it.who_win << setw(16) << it.win_piece << setw(10) << it.ep_moves.size() <<
+			setw(14) << it.time('p') << "(ms)"  << setw(10) << it.time('e') << "(ms)" << '\n';
 		}
 
 		size_t sop = 0, pop = 0, eop = 0;
