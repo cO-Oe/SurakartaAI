@@ -27,6 +27,15 @@ public:
 	void show () const {
 		int blk = block;
 		
+		cout << "#Game     #Winner     #left_pieces     #Moves     #player_time     #env_time\n";
+
+		int game_id = 1;
+		cout << setiosflags(ios::right);
+		for ( auto &it : data ) {
+			cout << setw(5) << game_id++ << setw(12) <<  it.who_win << setw(16) << it.win_piece << setw(10) << it.ep_moves.size() <<
+			setw(14) << it.time('p') << "(ms)"  << setw(10) << it.time('e') << "(ms)" << '\n';
+		}
+
 		size_t sop = 0, pop = 0, eop = 0;
 		time_t sdu = 0, pdu = 0, edu = 0;
 		auto it = data.end();
@@ -53,6 +62,7 @@ public:
  		cout << "env win: " << env_win << " games\n\n";
 		cout << "player win rate: " << static_cast<double>(player_win) / total * 100.0 << "%\n";
 		cout << "env win rate: " << double(env_win) / total * 100.0 << "%\n";
+		//cout << sdu / 1000.0 << ' ' << pdu / 1000.0 << ' ' << edu / 1000.0 << '\n';
 		cout << "ops: " << (sop * 1000.0) / sdu << '(' << (pop * 1000.0) / pdu << " | " << 
 		(eop * 1000.0) / edu << ')'<< "(player_op | env_op)" << '\n';
 

@@ -36,6 +36,14 @@ public:
 	virtual void close_episode(const string& flag = "") {}
 	virtual action take_action(board &b){return {}; }
 	int get_piece(){return piece;}
+	int count_piece ( board &b ) {
+		int cnt = 0;
+		for ( int i = 0; i < 36; i++ ) {
+			if ( b(i) == (this->get_piece() ^ 1) ) 
+				cnt++;
+		}
+		return cnt;
+	}
 
 protected:
 	int piece;
@@ -165,8 +173,6 @@ public:
 		if ( !before.check_Piece_onBoard(piece) ) return action();//lose
 		// if (!check_Piece_onBoard(before)) return action();
 		//find whether can eat piece or not
-		
-
 		//  --------Greedy Policy-------- //
 		
 		vector<Pair> pos = before.eat_piece(piece);

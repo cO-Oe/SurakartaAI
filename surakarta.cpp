@@ -67,8 +67,9 @@ int main(int argc, char* argv[]) {
 			// if (++ct > 2) break;
 		}
 		// cout << b.step << '\n';
-		agent& win = game.last_turns(play, env);
+		agent& win = game.last_turns(play, env, b);
 		string winner = (win.get_piece() == 1 ? "play" : "env" );
+
 		// cout << "Winner:" << winner << '\n';
 
 		stat.close_episode(winner);
