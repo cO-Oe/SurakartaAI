@@ -1,85 +1,78 @@
 /**
+
 The main program of Surakarta Game
--------------------------
-This is the Project of Department of Computer Science in NCTU 
+------------------------------------------
+This is the Project of Surakarta Game AI
+
 Construced by Clive Wu and Mark Chang
 Instructed by Professor I-Chen Wu
+
 **/
-#include <iostream>
 #include <iterator>
 #include <unistd.h>
 #include <typeinfo> 
 #include <fstream>
-#include "board.h"
-#include "action.h"
+
 #include "agent.h"
 #include "episode.h"
 #include "statistic.h"
-#include "Node.h"
-#include "MonteCarlo.h"
 
-
-using namespace std;
 int main(int argc, char* argv[]) {
-	cout << "Surakarta Demo: ";
-	copy(argv, argv + argc, ostream_iterator<char *>(cout, " "));
-	cout << "\n\n";
+	std::cout << "Surakarta Demo: ";
+	std::copy(argv, argv + argc, std::ostream_iterator<char *>(std::cout, " "));
+	std::cout << "\n\n";
 
-	size_t total = 50, block = 0;
-	for (int i = 1; i < argc; i++) {
-		string para(argv[i]);
+	size_t total = 5, block = 0;
+	for (int i{1}; i < argc; i++) {
+		std::string para(argv[i]);
 		if (para.find("--total=") == 0) {
-			total = stoull(para.substr(para.find("=") + 1));
+			total = std::stoull(para.substr(para.find("=") + 1));
 		}
 		else if (para.find("--block=") == 0) {
-			block = stoull(para.substr(para.find("=") + 1));
+			block = std::stoull(para.substr(para.find("=") + 1));
 		}
 	}
 
 	statistic stat(total, block);
 
-	envir play('B');//0
-	player env('W');//1
-	
-	int ct = 0;
+	player play {BLACK};//0
+	envir env {WHITE};//1
+
 	while (!stat.is_finished()) {
 
 		board b;
-		play.open_episode("~:B");
-		env.open_episode("~:W");
+		// play.open_episode("~:B");
+		// env.open_episode("~:W");
 
 		stat.open_episode("W:B");
 		episode& game = stat.back(); 
 		
 		while ( true ) {
-			//player first
+			// player first (left)
 			agent& who = game.take_turns(play, env);
-
-			action a = who.take_action(b);
-
-
-			if ( a.apply(b) == -1) {
-				// cout << b << '\n'; //last board
+		
+			Pair mv = who.take_action(b);
+			
+			if (mv != Pair{}){
+				game.record_action(mv);
+			}
+			// end game
+			else {
+				agent& win = game.winner(env, play);
+				// std::string winner = win.name();
+				stat.close_episode("end", win, b);
 				break;
 			}
-			game.apply_action(a);
-			cout << b << '\n';
-			// if (++ct > 2) break;
+			std::cout << b << '\n';
 		}
-		// cout << b.step << '\n';
-		agent& win = game.last_turns(play, env, b);
-		string winner = (win.get_piece() == 1 ? "play" : "env" );
+		// agent& win = game.last_turns(play, env, b);
+		// std::string winner = (win.get_piece() == 1 ? "play" : "env" );
 
-		// cout << "Winner:" << winner << '\n';
 
-		stat.close_episode(winner);
+		// stat.close_episode(winner);
 
-		play.close_episode(winner);
-		env.close_episode(winner);
-		// break;
-		// if (ct++ >= 2)
-			// break;
+		// play.close_episode(winner);
+		// env.close_episode(winner);
 	}
-	// stat.show();
 	return 0;
 }

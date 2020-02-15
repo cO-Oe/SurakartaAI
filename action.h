@@ -1,15 +1,13 @@
 #pragma once
 
-#include<iostream>
-#include<unordered_map>
+#include <unordered_map>
 #include "board.h"
 //record every moves
-typedef pair<int, int> Pair;
 
 
 class action {
 	public:
-		action(int piece = -1, int last_pos = -1, int new_pos = -1, char act = 'n') : 
+		action (bool piece = 0, char last_pos = -1, char new_pos = -1, char act = 'n') : 
 		piece(piece), last_pos(last_pos), new_pos(new_pos), act(act) {}
 		//default destructor
 		virtual ~action() {};
@@ -21,12 +19,12 @@ class action {
 		class eat;
 
 	public:
-		virtual int apply(board &b){ 
+		virtual EXEC_STATE apply(board &b){ 
 			//find what action it act
 			auto proto = entries().find(act);
 			//reinterpret action to new action
 			if (proto != entries().end() ) return proto->second->reinterpret(this).apply(b);
-			return -1;
+			return FAIL;
 		}
 
 	public:
@@ -37,9 +35,9 @@ class action {
 		char get_act() const { return act; }
 
 	private:
-		int piece;
-		unsigned last_pos;
-		unsigned new_pos;
+		bool piece;
+		char last_pos;
+		char new_pos;
 		char act;
 
 	protected:
@@ -51,13 +49,13 @@ class action {
 
 class action::move : public action {
 public:	
-	move(int piece, int last_pos, int new_pos) : action(piece, last_pos, new_pos, 'm') {}
+	move(bool piece, char last_pos, char new_pos) : action(piece, last_pos, new_pos, 'm') {}
 	move(const action &a = {}) : action(a) {}
 
 public:
-	int apply(board &b) {
+	EXEC_STATE apply(board &b) {
 		//if failed return -1
-		int apply_state = b.move(last_pos, new_pos, piece);
+		EXEC_STATE apply_state = b.move(last_pos, new_pos, piece);
 
 		return apply_state;
 	}
@@ -70,13 +68,13 @@ protected:
 
 class action::eat : public action {
 public:
-	eat(int piece, int last_pos, int new_pos) : action(piece, last_pos, new_pos, 'e') {}
+	eat(bool piece, char last_pos, char new_pos) : action(piece, last_pos, new_pos, 'e') {}
 	eat(const action &a = {}) : action(a) {}
 
 public:
-	int apply(board &b) {
+	EXEC_STATE apply(board &b) {
 		//if failed return -1
-		int apply_state = b.eat(last_pos, new_pos, piece);
+		EXEC_STATE apply_state = b.eat(last_pos, new_pos, piece);
 		return apply_state;
 	}
 	

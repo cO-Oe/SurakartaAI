@@ -7,11 +7,8 @@
 #include <sstream>
 #include <chrono>
 #include <numeric>
-#include "board.h"
-#include "action.h"
 #include "agent.h"
 
-using namespace std;
 
 class statistic;
 
@@ -26,89 +23,86 @@ public:
 
 	const board& state() const { return ep_state; }
 
-  void open_episode(const string& tag) {
+    void open_episode(const std::string& tag) {
 		ep_open = { tag, millisec() };
-		//cout << "1 : " << millisec() << ' ' << ep_open.when << '\n';
 	}
 
-	void close_episode(const string& tag) {
+	void close_episode(const std::string &tag, const agent &winner, const board &b) {
+		who_win = winner.name();
+		win_piece = b.count_piece(winner.get_piece());
+
 		ep_close = { tag, millisec() };
-		//cout << "2 : " << millisec() << ' ' << ep_close.when << '\n';
 	}
 
 	//save every action in episode
-  bool apply_action(action move) {
-  		// if ( move.apply(state()) == -1) return false;
+    void record_action(const Pair move) {
+		ep_moves.emplace_back( move, 0, millisec() - ep_time );
+	}
 
-		ep_moves.emplace_back(move, 0, millisec() - ep_time);
-		//cout << "test : " << millisec() - ep_time << '\n';
-		return true;
+	agent& winner(agent& play, agent& env) {
+		return (take_turns(play, env) == play) ? env : play;
 	}
 
 	//decide whose turn
-  agent& take_turns(agent& play, agent& env) {
+    agent& take_turns(agent& play, agent& env) {
 		ep_time = millisec();
-		return ((step() + 1) % 2) ? play : env;
-	}
-
-	//see which player moves last -> winner
-	agent& last_turns(agent& play, agent& env, board& b) {
-		agent &tmp = take_turns(play, env);
-		who_win =  ( tmp.get_piece() == 1) ? "play":"env" ;
-		win_piece = tmp.count_piece(b);
-		return tmp;
+		
+		if (env.get_piece() == BLACK)
+			return ((step() + 1) % 2) ? env : play;
+		else
+			return ((step() + 1) % 2) ? play : env;
 	}
 
 public:
 	//count moves of each player (cnt and type)
-	unsigned step (char who = 'n') const {
-		// unsigned size = 0;
-		int siz = ep_moves.size();
-		switch (who) {
-			case 'p': return (siz / 2 ) + ((siz % 2) ? 1 : 0);
-			case 'e': return siz / 2;
+	std::size_t step (const char who = 'n') const {
+		// std::size_t total_step = ep_moves.size();
+		
+		switch (std::size_t total_step = ep_moves.size(); who) {
+			case 'p': 
+				return (total_step / 2 ) + ((total_step % 2) ? 1 : 0);
+			case 'e': 
+				return total_step / 2;
 		default :
-			return siz; // 'int' is important for handling 0
+			return total_step; // 'int' is important for handling 0
 		}
 	}
 
 	//count time cost in an episode
-	time_t time (char who = 'n') const {
-		time_t time = 0;
-		size_t i = 0;
+	std::time_t time (const char who = 'n') const {
+		std::time_t time_cost = 0;
+		
 		switch(who) {
 			case 'p':
-				i = 0;
-				while( i < ep_moves.size() ) time += ep_moves[i].time, i += 2;
+				for ( std::size_t i{0}; i < ep_moves.size(); i+=2 ) 
+					time_cost += ep_moves[i].time;
 				break;
 			case 'e':
-				i = 1;
-				while( i < ep_moves.size() ) time += ep_moves[i].time, i += 2;
+				for ( std::size_t i{1}; i < ep_moves.size(); i+=2 ) 
+					time_cost += ep_moves[i].time;
 				break;
 
 			default: 
-				time = ep_close.when - ep_open.when;
+				time_cost = ep_close.when - ep_open.when;
 				break;
 		}
-		return time;
+		return time_cost;
 	}
 
 protected:  
 struct move {
-	action code;
+	Pair code;
 	int reward;
-	time_t time;
+	std::time_t time;
 
-	move(action code = {}, int reward = 0, time_t time = 0) : code(code), reward(reward), time(time) {}
+	move(Pair code = {}, int reward = 0, time_t time = 0) : code(code), reward(reward), time(time) {}
 	
-	operator action() const { return code; }
-
 };
 
 struct meta {
-		string tag;
+		std::string tag;
 		time_t when;
-		meta(const string& tag = "N/A", time_t when = 0) : tag(tag), when(when) {}
+		meta(const std::string& tag = "N/A", time_t when = 0) : tag(tag), when(when) {}
 
 		// friend ostream& operator <<(ostream& out, const meta& m) {
 		// 	return out << m.tag << "@" << dec << m.when;
@@ -123,16 +117,16 @@ struct meta {
 	}
 
 	static time_t millisec() {
-		auto now = chrono::system_clock::now().time_since_epoch();
-		return chrono::duration_cast<chrono::milliseconds>(now).count();
+		auto now = std::chrono::system_clock::now().time_since_epoch();
+		return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
 	}
 
 public:
 	board ep_state;
 private:
-	vector<move> ep_moves;
-	string who_win;
-	int win_piece;
+	std::vector<move> ep_moves;
+	std::string who_win;
+	unsigned win_piece;
 	time_t ep_time;
 	meta ep_open;
 	meta ep_close;
