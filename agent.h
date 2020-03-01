@@ -1,6 +1,5 @@
 #pragma once
 
-#include "action.h"
 #include "MonteCarlo.h"
 #include "policy.h"
 #include <functional>

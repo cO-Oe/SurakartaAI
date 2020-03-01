@@ -1,3 +1,9 @@
+/*
+Explanation:
+
+Surakarta Game board, implement functions related to board.
+*/
+
 #pragma once
 
 #include <array>
@@ -7,12 +13,6 @@
 #include <algorithm>
 #include <random>
 #include <vector>
-
-//typedef std::pair<int, int> Pair;
-//#define prev first
-//#define next second
-
-//template <class T>
 
 class Pair {
 public:
@@ -46,11 +46,6 @@ enum EXEC_STATE {
 	FAIL = -1
 };
 
-/*
-Surakarta game board
-any change in board will write here
-*/
-       
 
 class board {
 
@@ -118,7 +113,8 @@ private:
 	EXEC_STATE search_up (char &pos, bool pass, const bool &piece, char &count_step) {
 		count_step++;
 		
-		// has run a circle, find no eatable piece or collision with same color
+		// search has run a circle and find no eatable piece 
+		// or collision with same color piece
 		if (count_step >= 25 || (*this)(pos) == piece) {
 			count_step = 0;
 			return FAIL;
@@ -185,11 +181,11 @@ private:
 		const char prev_pos = pos;
 		std::vector<char> p;	
 		
-		//corner pos is not on any track, can't eat
+		// corner pos is not on any track, can't eat any piece
 		if (pos == 0 || pos == 5 || pos == 30 || pos == 35)
 			return FAIL;
 		
-		//search four way and return position when have eatable siece
+		// search four different ways
 		(*this)(pos) = SPACE;
 
 		char count_step = 0;
@@ -208,14 +204,14 @@ private:
 			return FAIL;
 		else{
 			origin_pos = p[0];
-			return SUCCESS;//return ramdomly
+			return SUCCESS;  // return ramdomly
 		}
 	}
 	// check whether the moves are available
 	std::vector<char> check_move (const char &pos, const bool &piece) const {
 		std::vector<char> movable;
 		
-		//8 directions
+		// 8 directions
 		char dir[8] {-7, -6, -5, -1, 1, 5, 6, 7};
 		const char no_move {0};
 
@@ -265,7 +261,7 @@ public:
 	}
 
 	std::vector<Pair> move_piece (const bool &piece) {
-		std::vector<Pair> movable; //store available moves pairs(now and next)
+		std::vector<Pair> movable; // store available moves pairs(now and next)
 
 		for (char now_pos {0}; now_pos < SIZE; ++now_pos) {
 			char tile = (*this)(now_pos);
@@ -278,14 +274,7 @@ public:
 				}
 			}
 		}
-		//random select a move
-		
-		// random_device rd;
-		// default_random_engine engine(rd());
-
-		// shuffle(ans.begin(), ans.end(), engine);
 		return movable;
-		// return ans[0];
 	}
 public:
 	std::vector<Pair> get_available_move(const bool &piece) {
@@ -308,7 +297,7 @@ public:
 		else return FAIL;
 	}
 
-	//move or eat a piece
+	// move or eat a piece
 	EXEC_STATE move(const char prev_pos, const char place_pos, const bool &piece) {
 		if (place_pos >= SIZE || place_pos < 0) return FAIL;
 		//if ((*this)(place_pos) != 0) return -1;
@@ -326,6 +315,7 @@ public:
 		return SUCCESS;
 	}
 
+	/*
 	EXEC_STATE eat(const char prev_pos, const char place_pos, const bool &piece) {
 		if (place_pos >= SIZE || place_pos < 0) return FAIL;
 		//if ((*this)(place_pos) != (!piece) ) return FAIL;
@@ -341,7 +331,7 @@ public:
 		// operator()(place_pos) = piece;
 		return SUCCESS;
 	}
-
+*/
 private:
 	inline void reflect_vertical(char &pos) {
 		// change current pos after reflection

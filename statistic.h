@@ -5,7 +5,6 @@
 #include <iostream>
 #include <sstream>
 #include "board.h"
-#include "action.h"
 #include "agent.h"
 #include "episode.h"
 
@@ -45,7 +44,7 @@ public:
 		for ( int i = 0; i < blk; ++i ) {
 			auto& ep = *(--it);
 
-			player_win += (ep.who_win == "play") ? 1: 0;
+			player_win += (ep.who_win == "player") ? 1: 0;
 
 			sop += ep.step();
 			pop += ep.step('p');
