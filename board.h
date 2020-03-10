@@ -13,6 +13,8 @@ Surakarta Game board, implement functions related to board.
 #include <algorithm>
 #include <random>
 #include <vector>
+#include <map>
+#include <functional>
 
 class Pair {
 public:
@@ -54,13 +56,27 @@ public:
 	typedef std::array<row, 6> grid;
 private:
 	grid tile;
+	
 public:
 	int step;//if odd, white's turn if even, black's turn
 	
 	static constexpr int SIZE { 36 };
 	static constexpr int COL { 6 };
+	
+	// std::map<int, std::pair<int, std::function<board::EXEC_STATE(char&, bool , const bool&, char&)> > >mapping_circle;
+	std::map<char, std::pair<char, EXEC_STATE(board::*)(char&, bool , const bool&, char&)> > mapping_circle;
+	void init_map() {
+		mapping_circle = {
+
+		{ 1,  { 6, &board::search_right} }, { 2, {12, &board::search_right} }, {3 , {17, &board::search_left } }, {4 , {11, &board::search_left} },
+		{ 6,  { 1, &board::search_down } }, {12, { 2, &board::search_down } }, {18, {32, &board::search_up   } }, {24, {31, &board::search_up  } },
+		{31,  {24, &board::search_right} }, {32, {18, &board::search_right} }, {33, {23, &board::search_left } }, {34, {29, &board::search_left} },
+		{29,  {34, &board::search_up   } }, {23, {33, &board::search_up   } }, {17,  {3, &board::search_down } }, {11, { 4, &board::search_down} }
+		};
+	}
 
 	board() : tile(), step(0) {
+		init_map();	
 		for (int i{0}; i < COL; ++i) {
 			for (int j = 0; j < COL; ++j) {
 				if (i <= 1) tile[i][j] = BLACK;
@@ -111,41 +127,39 @@ public:
 	}
 private:
 	EXEC_STATE search_up (char &pos, bool pass, const bool &piece, char &count_step) {
-		count_step++;
-		
-		// search has run a circle and find no eatable piece 
-		// or collision with same color piece
-		if (count_step >= 25 || (*this)(pos) == piece) {
-			count_step = 0;
-			return FAIL;
-		}
-		
-		if( (*this)(pos) == (!piece)) {
-			// pass: search route has passed a ring or not
-			if(pass)
-				return SUCCESS;
-			else {
+
+		do {
+			count_step++;
+			
+			// search has passed through circle and can't find eatable piece 
+			// or collided with same color piece
+			if (count_step >= 25 || (*this)(pos) == piece) {
 				count_step = 0;
 				return FAIL;
 			}
-		}
-
-		// search next step
-		pos -= COL;
 		
-		// deal with search position when passing rings
-		if (pos < 0) {
-			switch(pos) {
-				case -5: pos = 6; pass = true; return search_right(pos, pass, piece, count_step); 
-				case -4: pos = 12; pass = true; return search_right(pos, pass, piece, count_step);
-				case -3: pos = 17; pass = true; return search_left(pos, pass, piece, count_step);
-				case -2: pos = 11; pass = true; return search_left(pos, pass, piece, count_step);
-				// default: can't search anymore, route is blocked
-				default: pos = FAIL;
+			if( (*this)(pos) == (!piece)) {
+				// pass: search route has passed a ring or not
+				if(pass)
+					return SUCCESS;
+				else {
+					count_step = 0;
+					return FAIL;
+				}
 			}
+			pos -= COL;
+		} while(pos >= 0);
+		
+		// return to previous position
+		pos += COL;
+		
+		// pass through circles
+		if ( mapping_circle.find(pos) != mapping_circle.end() ){
+			pass = true;
+			char old_pos = pos;
+			pos = mapping_circle[pos].first;
+			return (this->*mapping_circle[old_pos].second)( pos, pass, piece, count_step); 
 		}
-		if (pos != FAIL)
-			return search_up(pos, pass, piece, count_step);
 		else {
 			count_step = 0;
 			return FAIL;
@@ -153,28 +167,125 @@ private:
 	}
 
 	EXEC_STATE search_down (char &pos, bool pass, const bool &piece, char &count_step)  {
-		reflect_vertical(pos);
-		EXEC_STATE st = search_up(pos, pass, piece, count_step);
-		reflect_vertical(pos);
+		do{
+			count_step++;
+			
+			// search has passed through circle and can't find eatable piece 
+			// or collided with same color piece
+			if (count_step >= 25 || (*this)(pos) == piece) {
+				count_step = 0;
+				return FAIL;
+			}
 		
-		return st;
-	}
+			if( (*this)(pos) == (!piece)) {
+				// pass: search route has passed a ring or not
+				if(pass)
+					return SUCCESS;
+				else {
+					count_step = 0;
+					return FAIL;
+				}
+			}
+			pos += COL;
 
-	EXEC_STATE search_right (char &pos, bool pass, const bool &piece, char &count_step) {
-		rotate_left(pos);
-		EXEC_STATE st = search_up(pos, pass, piece, count_step);
-		rotate_right(pos);
+		} while( pos < 36 );
 		
-		return st;
+		// return to previous position
+		pos -= COL;
+		
+		// pass through circles
+		if ( mapping_circle.find(pos) != mapping_circle.end() ){
+			pass = true;
+			char old_pos = pos;
+			pos = mapping_circle[pos].first;
+			return (this->*mapping_circle[old_pos].second)( pos, pass, piece, count_step); 
+		}
+		else {
+			count_step = 0;
+			return FAIL;
+		}		
+	}
+	
+	EXEC_STATE search_right (char &pos, bool pass, const bool &piece, char &count_step) {
+		do {
+			count_step++;
+			
+			// search has passed through circle and can't find eatable piece 
+			// or collided with same color piece
+			if (count_step >= 25 || (*this)(pos) == piece) {
+				count_step = 0;
+				return FAIL;
+			}
+		
+			if( (*this)(pos) == (!piece)) {
+				// pass: search route has passed a ring or not
+				if(pass)
+					return SUCCESS;
+				else {
+					count_step = 0;
+					return FAIL;
+				}
+			}
+			pos++;
+
+		} while ( (pos%6) != 0 );
+		
+		// return to previous position
+		pos--; 
+
+		// pass through circles
+		if ( mapping_circle.find(pos) != mapping_circle.end() ){
+			pass = true;
+			char old_pos = pos;
+			pos = mapping_circle[pos].first;
+			return (this->*mapping_circle[old_pos].second)( pos, pass, piece, count_step); 
+		}
+		else {
+			count_step = 0;
+			return FAIL;
+		}
+
 	}
 
 	EXEC_STATE search_left (char &pos, bool pass, const bool &piece, char &count_step) {
-		rotate_right(pos);
-		EXEC_STATE st = search_up(pos, pass, piece, count_step);
-		rotate_left(pos);
+		do {
+			count_step++;
+			
+			// search has passed through circle and can't find eatable piece 
+			// or collided with same color piece
+			if (count_step >= 25 || (*this)(pos) == piece) {
+				count_step = 0;
+				return FAIL;
+			}
 		
-		return st;
+			if( (*this)(pos) == (!piece)) {
+				// pass: search route has passed a ring or not
+				if(pass)
+					return SUCCESS;
+				else {
+					count_step = 0;
+					return FAIL;
+				}
+			}
+			pos--;
+		} while ( (pos%6) != 5);
+		
+		// return to previous position
+		pos++;
+
+		// pass through circles
+		if ( mapping_circle.find(pos) != mapping_circle.end() ){
+			pass = true;
+			char old_pos = pos;
+			pos = mapping_circle[old_pos].first;
+			return (this->*mapping_circle[old_pos].second)( pos, pass, piece, count_step); 
+		}
+		else {
+			count_step = 0;
+			return FAIL;
+		}
 	}
+	
 
 	EXEC_STATE check_eat (char &origin_pos, const bool &piece) {
 		char pos = origin_pos;
@@ -302,8 +413,8 @@ public:
 		if (place_pos >= SIZE || place_pos < 0) return FAIL;
 		//if ((*this)(place_pos) != 0) return -1;
 
-		// cout << piece << "'s chance.\n";
-		// cout << "Move from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
+		// std::cout << piece << "'s chance.\n";
+		// std::cout << "Move from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
 		// << place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
 
 		(*this)(place_pos) = piece;
