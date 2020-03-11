@@ -80,9 +80,10 @@ public:
 				return b.compare_piece();
 			}
 
-			const bool& color { b.take_turn() };
-			std::vector<Pair> ea { b.eat_piece(color) };
-			std::vector<Pair> mv { b.move_piece(color) };
+			const PIECE& color { b.take_turn() };
+			std::vector<Pair> ea { b.find_piece(color, EAT) };
+			std::vector<Pair> mv { b.find_piece(color, MOVE) };
+			
 			if (!ea.empty()) {
 				std::shuffle(ea.begin(), ea.end(), eng);
 				b.move(ea[0].prev, ea[0].next, color);

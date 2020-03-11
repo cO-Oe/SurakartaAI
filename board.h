@@ -13,7 +13,8 @@ Surakarta Game board, implement functions related to board.
 #include <algorithm>
 #include <random>
 #include <vector>
-#include <map>
+#include <unordered_map>
+#include <set>
 #include <functional>
 
 class Pair {
@@ -32,7 +33,7 @@ public:
 };
 
 
-enum Piece {
+enum PIECE {
 	BLACK,
 	WHITE,
 	SPACE = 9,
@@ -47,12 +48,24 @@ enum EXEC_STATE {
 	SUCCESS = 1,
 	FAIL = -1
 };
+enum DIRECTION {
+	LEFT = -1,
+	RIGHT = 1,
+	UP = -2,
+	DOWN = 2
+};
+enum ACTION {
+	MOVE,
+	EAT
+};
+
+const std::array<DIRECTION, 4> Directions{LEFT, RIGHT, UP, DOWN};
 
 
 class board {
 
 public:
-	typedef std::array<char, 6> row;
+	typedef std::array<PIECE, 6> row;
 	typedef std::array<row, 6> grid;
 private:
 	grid tile;
@@ -63,70 +76,82 @@ public:
 	static constexpr int SIZE { 36 };
 	static constexpr int COL { 6 };
 	
-	// std::map<int, std::pair<int, std::function<board::EXEC_STATE(char&, bool , const bool&, char&)> > >mapping_circle;
-	std::map<char, std::pair<char, EXEC_STATE(board::*)(char&, bool , const bool&, char&)> > mapping_circle;
-	void init_map() {
-		mapping_circle = {
+	static constexpr std::array<int, 4> corner_pos {0, 5, 30, 35};
+	// std::map<char, std::pair<char, std::function< EXEC_STATE(char&, bool , const bool&, char&)> > >mapping_circle;
+	static std::unordered_map<char, std::pair<char, DIRECTION > >mapping_circle;
 
-		{ 1,  { 6, &board::search_right} }, { 2, {12, &board::search_right} }, {3 , {17, &board::search_left } }, {4 , {11, &board::search_left} },
-		{ 6,  { 1, &board::search_down } }, {12, { 2, &board::search_down } }, {18, {32, &board::search_up   } }, {24, {31, &board::search_up  } },
-		{31,  {24, &board::search_right} }, {32, {18, &board::search_right} }, {33, {23, &board::search_left } }, {34, {29, &board::search_left} },
-		{29,  {34, &board::search_up   } }, {23, {33, &board::search_up   } }, {17,  {3, &board::search_down } }, {11, { 4, &board::search_down} }
-		};
-	}
-
-	board() : tile(), step(0) {
-		init_map();	
+	void init_board() {
+		
 		for (int i{0}; i < COL; ++i) {
-			for (int j = 0; j < COL; ++j) {
+			for (int j{0}; j < COL; ++j) {
 				if (i <= 1) tile[i][j] = BLACK;
 				if (i <= 3 && i > 1) tile[i][j] = SPACE;
 				else if (i <= 5 && i > 3) tile[i][j] = WHITE;
 			}
 		}
 	}
-	char& operator()(char i)  { return tile[ i / 6 ][ i % 6 ]; }
-	char operator()(char i) const {return tile[ i / 6 ][ i % 6 ]; }
 
-	char& operator()(char x, char y)  { return tile[x][y]; }
-	char operator()(char x, char y) const { return tile[x][y]; }	
-	board& operator =(const board &b) = default;
-
-	inline WIN_STATE compare_piece() const {
-		int b = 0, w = 0;
-		for (int i{0}; i < SIZE; ++i) {
-			if ( (*this)(i) == BLACK)
-				b++;
-			else if ( ((*this)(i) == WHITE) )
-				w++;
-		}
-		if (b==w)
-			return DRAW;
-		return (b>w) ? BLACK_WIN : WHITE_WIN;
+	board() : tile(), step(0) {
+		// init_map();	
+		init_board();
 	}
 
-	inline bool take_turn() const {
+	PIECE& operator()(char i)  { return tile[ i / 6 ][ i % 6 ]; }
+	PIECE operator()(char i) const {return tile[ i / 6 ][ i % 6 ]; }
+
+	PIECE& operator()(char x, char y)  { return tile[x][y]; }
+	PIECE operator()(char x, char y) const { return tile[x][y]; }	
+	board& operator =(const board &b) = default;
+
+	// compare pieces on board
+	inline WIN_STATE compare_piece() const {
+		unsigned b_num = 0, w_num = 0;
+		b_num = count_piece(BLACK);
+		w_num = count_piece(WHITE);
+
+		if (b_num == w_num)
+			return DRAW;
+		return (b_num > w_num) ? BLACK_WIN : WHITE_WIN;
+	}
+
+	inline PIECE take_turn() const {
 		if (step % 2){
 			return WHITE;
-		}
+		} 
 		else {
 			return BLACK;
 		}
 	}
 
-	inline unsigned count_piece(const bool &piece) const {
+	inline unsigned count_piece(const PIECE &piece) const {
 		unsigned total = 0;
+		for (int i=0; i<SIZE; i++)
+			if ( operator()(i) == piece)
+				++total;
 		
-		for(auto &r : tile) {
-			for(auto &c : r) {
-				if (piece == c)
-					++total;
-			}
-		}
 		return total;
 	}
 private:
-	EXEC_STATE search_up (char &pos, bool pass, const bool &piece, char &count_step) {
+	void move_a_step(char &pos, DIRECTION dir) {
+		switch (dir) {
+			case LEFT : pos--; break;
+			case RIGHT: pos++; break;
+			case UP   : pos-=COL; break;
+			case DOWN : pos+=COL; break;
+		}
+	}
+
+	bool detect_edge(char &pos, DIRECTION dir) {
+		switch (dir) {
+			case LEFT : return ( (pos % 6) != 5);
+			case RIGHT: return ( (pos % 6) != 0);
+			case UP   : return (pos >= 0);
+			case DOWN : return (pos < 36);
+			default: throw "UNKNOWN DIRECTION";
+		}
+	}
+
+	EXEC_STATE search (char &pos, bool pass, const PIECE &piece, char &count_step, DIRECTION dir) {
 
 		do {
 			count_step++;
@@ -147,18 +172,18 @@ private:
 					return FAIL;
 				}
 			}
-			pos -= COL;
-		} while(pos >= 0);
+			move_a_step(pos, dir);
+		} while( detect_edge(pos, dir) );
 		
 		// return to previous position
-		pos += COL;
+		move_a_step(pos, static_cast<DIRECTION>(-static_cast<int>(dir) ) );
 		
 		// pass through circles
 		if ( mapping_circle.find(pos) != mapping_circle.end() ){
 			pass = true;
 			char old_pos = pos;
 			pos = mapping_circle[pos].first;
-			return (this->*mapping_circle[old_pos].second)( pos, pass, piece, count_step); 
+			return search( pos, pass, piece, count_step, mapping_circle[old_pos].second); 
 		}
 		else {
 			count_step = 0;
@@ -166,160 +191,36 @@ private:
 		}
 	}
 
-	EXEC_STATE search_down (char &pos, bool pass, const bool &piece, char &count_step)  {
-		do{
-			count_step++;
-			
-			// search has passed through circle and can't find eatable piece 
-			// or collided with same color piece
-			if (count_step >= 25 || (*this)(pos) == piece) {
-				count_step = 0;
-				return FAIL;
-			}
-		
-			if( (*this)(pos) == (!piece)) {
-				// pass: search route has passed a ring or not
-				if(pass)
-					return SUCCESS;
-				else {
-					count_step = 0;
-					return FAIL;
-				}
-			}
-			pos += COL;
-
-		} while( pos < 36 );
-		
-		// return to previous position
-		pos -= COL;
-		
-		// pass through circles
-		if ( mapping_circle.find(pos) != mapping_circle.end() ){
-			pass = true;
-			char old_pos = pos;
-			pos = mapping_circle[pos].first;
-			return (this->*mapping_circle[old_pos].second)( pos, pass, piece, count_step); 
-		}
-		else {
-			count_step = 0;
-			return FAIL;
-		}		
-	}
-	
-	EXEC_STATE search_right (char &pos, bool pass, const bool &piece, char &count_step) {
-		do {
-			count_step++;
-			
-			// search has passed through circle and can't find eatable piece 
-			// or collided with same color piece
-			if (count_step >= 25 || (*this)(pos) == piece) {
-				count_step = 0;
-				return FAIL;
-			}
-		
-			if( (*this)(pos) == (!piece)) {
-				// pass: search route has passed a ring or not
-				if(pass)
-					return SUCCESS;
-				else {
-					count_step = 0;
-					return FAIL;
-				}
-			}
-			pos++;
-
-		} while ( (pos%6) != 0 );
-		
-		// return to previous position
-		pos--; 
-
-		// pass through circles
-		if ( mapping_circle.find(pos) != mapping_circle.end() ){
-			pass = true;
-			char old_pos = pos;
-			pos = mapping_circle[pos].first;
-			return (this->*mapping_circle[old_pos].second)( pos, pass, piece, count_step); 
-		}
-		else {
-			count_step = 0;
-			return FAIL;
-		}
-
-	}
-
-	EXEC_STATE search_left (char &pos, bool pass, const bool &piece, char &count_step) {
-		do {
-			count_step++;
-			
-			// search has passed through circle and can't find eatable piece 
-			// or collided with same color piece
-			if (count_step >= 25 || (*this)(pos) == piece) {
-				count_step = 0;
-				return FAIL;
-			}
-		
-			if( (*this)(pos) == (!piece)) {
-				// pass: search route has passed a ring or not
-				if(pass)
-					return SUCCESS;
-				else {
-					count_step = 0;
-					return FAIL;
-				}
-			}
-			pos--;
-		} while ( (pos%6) != 5);
-		
-		// return to previous position
-		pos++;
-
-		// pass through circles
-		if ( mapping_circle.find(pos) != mapping_circle.end() ){
-			pass = true;
-			char old_pos = pos;
-			pos = mapping_circle[old_pos].first;
-			return (this->*mapping_circle[old_pos].second)( pos, pass, piece, count_step); 
-		}
-		else {
-			count_step = 0;
-			return FAIL;
-		}
-	}
-	
-
-	EXEC_STATE check_eat (char &origin_pos, const bool &piece) {
+	std::vector<char> check_eat (const char &origin_pos, const PIECE &piece) {
 		char pos = origin_pos;
 		const char prev_pos = pos;
-		std::vector<char> p;	
+		char count_step = 0;
+
+		std::vector<char> eatable;	
 		
 		// corner pos is not on any track, can't eat any piece
-		if (pos == 0 || pos == 5 || pos == 30 || pos == 35)
-			return FAIL;
+		for (auto &p : corner_pos)
+			if(p == pos)
+				return {};
 		
 		// search four different ways
 		(*this)(pos) = SPACE;
 
-		char count_step = 0;
-		if ( search_up(pos, false, piece, count_step) != FAIL) p.push_back(pos);	  
-		pos = prev_pos; count_step = 0;
-		if ( search_down(pos, false, piece, count_step) != FAIL) p.push_back(pos); 
-		pos = prev_pos; count_step = 0;
-		if ( search_right(pos, false, piece, count_step) != FAIL) p.push_back(pos); 
-		pos = prev_pos; count_step = 0;
-		if ( search_left(pos, false, piece, count_step) != FAIL) p.push_back(pos);  
-		pos = prev_pos; count_step = 0;
+		for (auto &dir : Directions) {
+			if ( search(pos, false, piece, count_step, dir) != FAIL) eatable.push_back(pos);	  
+			pos = prev_pos; count_step = 0;
+		}
 		
 		(*this)(prev_pos) = piece;
 
-		if (p.empty())
-			return FAIL;
+		if (eatable.empty())
+			return {};
 		else{
-			origin_pos = p[0];
-			return SUCCESS;  // return ramdomly
+			return eatable;  // return ramdomly
 		}
 	}
 	// check whether the moves are available
-	std::vector<char> check_move (const char &pos, const bool &piece) const {
+	std::vector<char> check_move (const char &pos, const PIECE &piece) const {
 		std::vector<char> movable;
 		
 		// 8 directions
@@ -351,19 +252,22 @@ private:
 		return movable;
 	}
 public:
-	std::vector<Pair> eat_piece (const bool &piece) {
+	std::vector<Pair> find_piece(const PIECE &piece, ACTION act) {
 		std::vector<Pair> eatable;
 
-		for (char i {0}; i < SIZE; ++i) {
-			char next_pos = i;
-			char tile = (*this)(next_pos);
+		for (char now_pos {0}; now_pos < SIZE; ++now_pos) {
+			char tile = (*this)(now_pos);
 			
 			if (tile == piece) {
-				char now_pos = next_pos;
-				EXEC_STATE eat_pos = check_eat(next_pos, piece);
-				
-				if (eat_pos != FAIL) {
-					eatable.push_back( {now_pos, next_pos} );
+				std::vector<char> eat_pos;
+				if (act == MOVE)
+					eat_pos = { check_move(now_pos, piece) };
+				else if (act == EAT)
+					eat_pos = { check_eat(now_pos, piece) };
+
+				if (!eat_pos.empty()) {
+					for (auto &next_pos : eat_pos) 
+						eatable.push_back( {now_pos, next_pos} );
 				}
 				
 			}
@@ -371,32 +275,16 @@ public:
 		return eatable;
 	}
 
-	std::vector<Pair> move_piece (const bool &piece) {
-		std::vector<Pair> movable; // store available moves pairs(now and next)
-
-		for (char now_pos {0}; now_pos < SIZE; ++now_pos) {
-			char tile = (*this)(now_pos);
-			if (tile == piece) {		
-				std::vector<char> move_pos { check_move(now_pos, piece) };
-				
-				if ( !move_pos.empty() ) {
-					for (auto &next_pos : move_pos)
-						movable.push_back( {now_pos, next_pos} );
-				}
-			}
-		}
-		return movable;
-	}
 public:
-	std::vector<Pair> get_available_move(const bool &piece) {
-		std::vector<Pair> mv = move_piece(piece);
-		std::vector<Pair> ea = eat_piece(piece);
+	std::vector<Pair> get_available_move(const PIECE &piece) {
+		std::vector<Pair> mv = find_piece(piece, MOVE);
+		std::vector<Pair> ea = find_piece(piece, EAT);
 		ea.insert(ea.end(), mv.begin(), mv.end());
 		
 		return ea;
 	}
 
-	EXEC_STATE check_Piece_onBoard (const bool &piece) const {
+	EXEC_STATE check_Piece_onBoard (const PIECE &piece) const {
 		bool find = false;
 
 		for (int i = 0; i < SIZE; i++) {
@@ -409,7 +297,7 @@ public:
 	}
 
 	// move or eat a piece
-	EXEC_STATE move(const char prev_pos, const char place_pos, const bool &piece) {
+	EXEC_STATE move(const char prev_pos, const char place_pos, const PIECE &piece) {
 		if (place_pos >= SIZE || place_pos < 0) return FAIL;
 		//if ((*this)(place_pos) != 0) return -1;
 
@@ -420,29 +308,9 @@ public:
 		(*this)(place_pos) = piece;
 		(*this)(prev_pos) = SPACE;
 		step++;
-		// cout << (*this) << '\n';
 
-		// operator()(place_pos) = piece;
 		return SUCCESS;
 	}
-
-	/*
-	EXEC_STATE eat(const char prev_pos, const char place_pos, const bool &piece) {
-		if (place_pos >= SIZE || place_pos < 0) return FAIL;
-		//if ((*this)(place_pos) != (!piece) ) return FAIL;
-		
-		// cout << piece << "'s chance.\n";
-		// cout << "Eat from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
-		// << place_pos / 6 << ", " << place_pos % 6<< ")\n\n";
-
-		(*this)(place_pos) = piece;
-		(*this)(prev_pos) = SPACE;
-		step++;
-		// cout << (*this) << '\n';
-		// operator()(place_pos) = piece;
-		return SUCCESS;
-	}
-*/
 private:
 	inline void reflect_vertical(char &pos) {
 		// change current pos after reflection
@@ -541,4 +409,11 @@ public:
 		return out;
 	}
 
+};
+std::unordered_map<char, std::pair<char, DIRECTION> > board::mapping_circle = 
+{
+		{ 1,  { 6, RIGHT} }, { 2, {12, RIGHT} }, {3 , {17, LEFT } }, {4 , {11, LEFT } },
+		{ 6,  { 1, DOWN } }, {12, { 2, DOWN } }, {18, {32, UP   } }, {24, {31, UP   } },
+		{31,  {24, RIGHT} }, {32, {18, RIGHT} }, {33, {23, LEFT } }, {34, {29, LEFT } },
+		{29,  {34, UP   } }, {23, {33, UP   } }, {17,  {3, DOWN } }, {11, { 4, DOWN } }
 };

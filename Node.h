@@ -10,7 +10,7 @@ class Node {
 private:
 	// Node* child;
 	std::unique_ptr<Node[]> child;
-	bool color;
+	PIECE color;
 	Pair move;
 	std::size_t c_size;
 	double count;
@@ -23,7 +23,7 @@ public:
 	Node() : child(nullptr), c_size(0), count(0), win(0), means(0.5) {}
 	~Node() {}
 	
-	void init_Node (const Pair &m, const bool &piece) {
+	void init_Node (const Pair &m, const PIECE &piece) {
 		this->color = piece;
 		this->move = m;
 	}
@@ -45,7 +45,7 @@ public:
 	}
 	void expand(board &b) {
 		
-		const bool& c = b.take_turn();
+		const PIECE& c = b.take_turn();
 		std::vector<Pair> mv = b.get_available_move(c);
 
 		c_size = mv.size();

@@ -20,7 +20,7 @@ any rule for a player will write here
 class agent {
 
 public:
-	agent(bool piece) : piece(piece), count_step(0), count_not_eat(0) {}
+	agent(PIECE piece) : piece(piece), count_step(0), count_not_eat(0) {}
 
 public:
 	
@@ -31,7 +31,7 @@ public:
 	virtual std::string name() const { return "agent"; }
 	
 
-	bool get_piece() const { return piece; }
+	PIECE get_piece() const { return piece; }
 	
 	// count opponent piece?
 	int count_piece (const board &b) const {
@@ -49,7 +49,7 @@ public:
 	inline int idle_step() const { return count_not_eat; }
 
 protected:
-	const bool piece;
+	const PIECE piece;
 	int count_step;
 	int count_not_eat;
 	
@@ -63,7 +63,7 @@ protected:
 
 class player : public agent {
 public:
-	player(bool p) : agent(p){
+	player(PIECE p) : agent(p){
 
 	}
 	
@@ -85,7 +85,7 @@ public:
 class envir : public agent {
 
 public:
-	envir(bool p) : agent(p){
+	envir(PIECE p) : agent(p){
 		
 	}
 

@@ -5,7 +5,7 @@ public:
 	Policy() = delete;
 	
 
-	static Pair Greedy (board &before, const bool &piece) {
+	static Pair Greedy (board &before, const PIECE &piece) {
 		
 		std::random_device rd;
 		std::default_random_engine engine(rd());
@@ -13,14 +13,14 @@ public:
 		if ( before.check_Piece_onBoard(piece) == FAIL ) return {};
 		//find whether can eat piece or not
 
-		std::vector<Pair> pos = before.eat_piece(piece);
+		std::vector<Pair> pos = before.find_piece(piece, EAT);
 		if ( !pos.empty() ) {
 			// take eat action first
 			return pos[0];	
 		}
 		else {
 			//take move action second
-			pos = before.move_piece(piece);
+			pos = before.find_piece(piece, MOVE);
 			if ( !pos.empty() ) {
 				std::shuffle(pos.begin(), pos.end(), engine);
 				return pos[0];
@@ -30,7 +30,7 @@ public:
 
 	}
 
-	static Pair MCTS (board &before, const bool &piece, const int &simulation_times) {
+	static Pair MCTS (board &before, const PIECE &piece, const int &simulation_times) {
 		if ( before.check_Piece_onBoard(piece)==FAIL ) return {};//lose
 		
 		MonteCarloTree tree;
