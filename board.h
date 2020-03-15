@@ -78,7 +78,7 @@ public:
 	
 	static constexpr std::array<int, 4> corner_pos {0, 5, 30, 35};
 	// std::map<char, std::pair<char, std::function< EXEC_STATE(char&, bool , const bool&, char&)> > >mapping_circle;
-	static std::unordered_map<char, std::pair<char, DIRECTION > >mapping_circle;
+	static std::unordered_map<char, std::pair<char, DIRECTION > >mapping_circle; // declare below
 
 	void init_board() {
 		
@@ -355,7 +355,7 @@ private:
 
 public:
 /*
-			       0 1 2 3 4 5
+                   0 1 2 3 4 5
                ┏━━━━━━━┓ ┏━━━━━━━┓  
                ┃ ┏━━━┓ ┃ ┃ ┏━━━┓ ┃
               0┃ ┃ 1 1 1 1 1 1 ┃ ┃ 
