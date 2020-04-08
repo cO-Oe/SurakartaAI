@@ -16,6 +16,7 @@ Surakarta Game board, implement functions related to board.
 #include <unordered_map>
 #include <set>
 #include <functional>
+#include <torch/torch.h>
 
 class Pair {
 public:
@@ -101,7 +102,41 @@ public:
 
 	PIECE& operator()(char x, char y)  { return tile[x][y]; }
 	PIECE operator()(char x, char y) const { return tile[x][y]; }	
+
 	board& operator =(const board &b) = default;
+	operator torch::Tensor() {
+		double b_[36];
+		// copy board value
+		for(int i=0; i<36; i++)
+			b_[i] = (*this)(i);
+
+		return torch::from_blob(b_, {1, 36});
+	}
+	float* convert() {
+		static float ant[36];
+		
+		for(int i=0; i<36; i++)
+			ant[i] = (*this)(i);
+		return ant;
+	}
+	board white_board() {
+		board wb;
+		for(int i=0; i<36; i++)
+			if((*this)(i) == WHITE) 
+				wb(i) = WHITE;
+			else
+				wb(i) = BLACK;				
+		return wb;
+	}
+	board black_board() {
+		board bb;
+		for(int i=0; i<36; i++)
+			if((*this)(i) == BLACK) 
+				bb(i) = WHITE;
+			else
+				bb(i) = BLACK;				
+		return bb;
+	}
 
 	// compare pieces on board
 	inline WIN_STATE compare_piece() const {

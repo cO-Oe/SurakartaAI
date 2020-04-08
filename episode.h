@@ -30,13 +30,14 @@ public:
 	void close_episode(const std::string &tag, const agent &winner, const board &b) {
 		who_win = winner.name();
 		win_piece = b.count_piece(winner.get_piece());
-
+		result = winner.get_piece();
 		ep_close = { tag, millisec() };
 	}
 
 	//save every action in episode
-    void record_action(const Pair move) {
+    void record_action(const Pair move, const board b) {
 		ep_moves.emplace_back( move, 0, millisec() - ep_time );
+		ep_boards.emplace_back(b);
 	}
 
 	agent& winner(agent& play, agent& env) {
@@ -123,8 +124,10 @@ struct meta {
 
 public:
 	board ep_state;
-private:
 	std::vector<move> ep_moves;
+	std::vector<board> ep_boards;
+	PIECE result;
+private:
 	std::string who_win;
 	unsigned win_piece;
 	time_t ep_time;

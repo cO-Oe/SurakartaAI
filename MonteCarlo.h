@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Node.h"
+#include "TreeNode.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -9,8 +9,8 @@
 
 class MonteCarloTree {
 public:
-	std::unique_ptr<Node> root;
-	std::vector<Node*> path;
+	std::unique_ptr<TreeNode> root;
+	std::vector<TreeNode*> path;
 	board root_board;
 	
 	std::random_device rd;
@@ -20,7 +20,7 @@ public:
 
 	MonteCarloTree() : root(), path(), root_board(), eng(rd()) {}
 	
-	Node* UCB (Node* n)  {
+	TreeNode* UCB (TreeNode* n)  {
 
 		if(n->c_size == 0) return nullptr;
 		
@@ -30,7 +30,7 @@ public:
 		std::size_t idx = 0;
 
 		for (std::size_t i = 0; i < n->c_size; ++i) {
-			Node* ch = n->child.get() + i;
+			TreeNode* ch = n->child.get() + i;
 			
 			const double exploit { ch->win / (ch->count + 1.0) };
 			const double explore { sqrt( log(n->count) / (double)(ch->count+1.0) ) };
@@ -55,7 +55,7 @@ public:
 
 	void select(board &b) {
 
-		Node* current { root.get() };
+		TreeNode* current { root.get() };
 	
 		path.clear();
 		path.push_back(current);
@@ -109,11 +109,11 @@ public:
 	
 	void tree_policy() {
 		board b {root_board};
-		Node *current;
+		TreeNode *current;
 		
 		select(b);
 		
-		Node &leaf_node = *(path.back());
+		TreeNode &leaf_node = *(path.back());
 		
 		if (leaf_node.c_size==0 && leaf_node.count > 0){
 
@@ -139,7 +139,7 @@ public:
 
 	void reset(board &b) {
 		root_board = b;
-		root = { std::make_unique<Node>() };
+		root = { std::make_unique<TreeNode>() };
 		root->color = root_board.take_turn();
 		root->move = {-1, -1};
 		root->count = 1;

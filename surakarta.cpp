@@ -16,6 +16,8 @@ Instructed by Professor I-Chen Wu
 #include "agent.h"
 #include "episode.h"
 #include "statistic.h"
+// #include "train.h"
+
 
 int main(int argc, char* argv[]) {
 	std::cout << "Surakarta Demo: ";
@@ -54,16 +56,18 @@ int main(int argc, char* argv[]) {
 			Pair mv = who.take_action(b);
 			
 			if (mv != Pair{}){
-				game.record_action(mv);
+				game.record_action(mv, b);
 			}
 			// end game
 			else {
 				agent& win = game.winner(env, play);
 				// std::string winner = win.name();
 				stat.close_episode("end", win, b);
+				// train_Net(game, 60);
 				break;
 			}
 			std::cout << b << '\n';
+			// sleep(3);
 		}
 		// agent& win = game.last_turns(play, env, b);
 		// std::string winner = (win.get_piece() == 1 ? "play" : "env" );

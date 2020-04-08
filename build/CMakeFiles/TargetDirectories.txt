@@ -1,0 +1,3 @@
+/home/mark193/Documents/tmp/SurakartaAI/build/CMakeFiles/rebuild_cache.dir
+/home/mark193/Documents/tmp/SurakartaAI/build/CMakeFiles/edit_cache.dir
+/home/mark193/Documents/tmp/SurakartaAI/build/CMakeFiles/surakarta.dir

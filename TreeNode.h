@@ -6,10 +6,10 @@
 #include <climits>
 class MonteCarloTree;
 
-class Node {
+class TreeNode {
 private:
-	// Node* child;
-	std::unique_ptr<Node[]> child;
+	// TreeNode* child;
+	std::unique_ptr<TreeNode[]> child;
 	PIECE color;
 	Pair move;
 	std::size_t c_size;
@@ -20,10 +20,10 @@ private:
 public:		
 	friend class MonteCarloTree;
 
-	Node() : child(nullptr), c_size(0), count(0), win(0), means(0.5) {}
-	~Node() {}
+	TreeNode() : child(nullptr), c_size(0), count(0), win(0), means(0.5) {}
+	~TreeNode() {}
 	
-	void init_Node (const Pair &m, const PIECE &piece) {
+	void init_TreeNode (const Pair &m, const PIECE &piece) {
 		this->color = piece;
 		this->move = m;
 	}
@@ -53,10 +53,10 @@ public:
 		if (c_size == 0)
 			return;
 		
-		child = std::make_unique<Node[]>(c_size);
+		child = std::make_unique<TreeNode[]>(c_size);
 		int idx = 0;
 		for (auto &m : mv) {
-			child[idx].init_Node(m, c);
+			child[idx].init_TreeNode(m, c);
 			idx++;
 		}
 		
