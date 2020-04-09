@@ -53,55 +53,36 @@ public:
 
 	static Pair NN (board &before, const PIECE &piece) {
 		board now = before;
-		
+
 		// get legal action
 		auto moves = now.get_available_move(piece);
-		// torch::Tensor max_val = torch::tensor({-2.0});
+
 		double max_val = -2.0;
 		Pair best_move{};
-		// get V(s)
+
 		std::cerr << "Net take action: \n\n";
 
-		// for(const auto& p : Net->parameters()) {
-		// 	std::cerr << p << '\n';
-		// }
+		// enumerate all moves
 		for (auto &mv : moves) {
 			board next = now;
 			next.move(mv.prev, mv.next, piece);
 
-			const int stacks = 3; // black + white + take_turn
-			// if(piece == WHITE)
-				// memset(turns, 1, sizeof(turns));
-			// else
-				// memset(turns, 0, sizeof(turns));
+			const int stacks = 3; // black*1 + white*1 + take_turn
 
-			board test;
-					
-			float tmp_stack[3*6*6];
-			float* tensor_stack = tmp_stack;
+			float tensor_stack[stacks * board::SIZE];
+			generate_states(tensor_stack, next, piece);
 
-			int idx = 0;
-			for(int i=0; i<36; i++)
-				*(tensor_stack + (idx++)) = next.black_board().convert()[i];
-			for(int i=0; i<36; i++)
-				*(tensor_stack + (idx++)) = next.white_board().convert()[i];
-			for(int i=0; i<36; i++)
-				*(tensor_stack + (idx++)) = (piece == BLACK) ? 1:0;
-
-
-			torch::Tensor boards = torch::from_blob(tensor_stack, {3, 6, 6});
-			
-			// std::cerr << boards << '\n';
+			torch::Tensor boards = torch::from_blob(tensor_stack, {1, 3, 6, 6}); // shape: [batch_size, stacks, row, col]
 			torch::Tensor pred_val = Net->forward(boards);
-			double pred = pred_val.item<double>();
-			std::cerr << "Move: (" << int(mv.prev) << ", " << int(mv.next) << ") Value : " << pred << '\n'; 
+
+			double pred = pred_val[0].item<double>();
 			
+			// find the best V(s)
 			if (pred > max_val) {
 				max_val = pred;
 				best_move = mv;				
 			}
 		}
-		std::cerr << '\n';
 		
 		return best_move;		
 	}

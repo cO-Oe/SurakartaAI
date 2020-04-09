@@ -112,14 +112,8 @@ public:
 
 		return torch::from_blob(b_, {1, 36});
 	}
-	float* convert() {
-		static float ant[36];
-		
-		for(int i=0; i<36; i++)
-			ant[i] = (*this)(i);
-		return ant;
-	}
-	board white_board() {
+
+	board white_board() const {
 		board wb;
 		for(int i=0; i<36; i++)
 			if((*this)(i) == WHITE) 
@@ -128,7 +122,7 @@ public:
 				wb(i) = BLACK;				
 		return wb;
 	}
-	board black_board() {
+	board black_board() const {
 		board bb;
 		for(int i=0; i<36; i++)
 			if((*this)(i) == BLACK) 

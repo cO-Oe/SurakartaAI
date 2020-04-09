@@ -16,7 +16,7 @@ Instructed by Professor I-Chen Wu
 #include "agent.h"
 #include "episode.h"
 #include "statistic.h"
-// #include "train.h"
+#include "train.h"
 
 
 int main(int argc, char* argv[]) {
@@ -43,40 +43,31 @@ int main(int argc, char* argv[]) {
 	while (!stat.is_finished()) {
 
 		board b;
-		// play.open_episode("~:B");
-		// env.open_episode("~:W");
 
 		stat.open_episode("W:B");
 		episode& game = stat.back(); 
-		
+
 		while ( true ) {
 			// player first (left)
 			agent& who = game.take_turns(play, env);
-		
+			board prev_b = b;
+
 			Pair mv = who.take_action(b);
 			
-			if (mv != Pair{}){
-				game.record_action(mv, b);
-			}
 			// end game
-			else {
-				agent& win = game.winner(env, play);
-				// std::string winner = win.name();
-				stat.close_episode("end", win, b);
-				// train_Net(game, 60);
+			if (mv == Pair{})
 				break;
-			}
+			game.record_action(mv, prev_b, who.get_piece());
+
 			std::cout << b << '\n';
 			// sleep(3);
 		}
-		// agent& win = game.last_turns(play, env, b);
-		// std::string winner = (win.get_piece() == 1 ? "play" : "env" );
+		agent& win = game.winner(env, play);
+		stat.close_episode("end", win, b);
 
-
-		// stat.close_episode(winner);
-
-		// play.close_episode(winner);
-		// env.close_episode(winner);
+		// train Network 
+		train_Net(game); // episode, epochs
+	
 	}
 	return 0;
 }
