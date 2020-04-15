@@ -44,12 +44,6 @@ void train_Net(const episode &game, const int num_epoch = 10) {
     // std::cout << "Sep1\n";
     // std::cout << Net->parameters() << '\n';
 
-    // load model.pt file to Net
-    torch::load(Net, "model.pt");
-
-    // std::cout << "Sep2\n";
-    // std::cout << Net->parameters() << '\n';
-    
     // load dataset    
     const int64_t batch_size = 16;
     std::vector<int> game_labels(game.ep_boards.size(), game.result);
@@ -90,10 +84,6 @@ void train_Net(const episode &game, const int num_epoch = 10) {
         std::cout << "Epoch " << epoch << ": " << "Mean square error: " << mse << '\n';
 
     }
-    // std::cout << "Sep3\n";
+    // std::cout << "Sep2\n";
     // std::cout << Net->parameters() << '\n';
-
-    //save model to model.pt file
-    torch::save(Net, "model.pt");
-
 }

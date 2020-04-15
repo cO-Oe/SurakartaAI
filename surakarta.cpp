@@ -35,6 +35,8 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	torch::load(Net, "model.pt");
+
 	statistic stat(total, block);
 
 	player play {BLACK};//0
@@ -69,5 +71,6 @@ int main(int argc, char* argv[]) {
 		train_Net(game); // episode, epochs
 	
 	}
+	torch::save(Net, "model.pt");
 	return 0;
 }
