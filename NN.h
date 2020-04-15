@@ -31,7 +31,10 @@ public:
 		torch::nn::ReLU(),
 
 		torch::nn::Linear(512, 1)
-	) {}
+	) {
+		register_module("CNN_Net", CNN_Net);
+		register_module("FC_Net", FC_Net);
+	}
 
 	torch::Tensor forward(torch::Tensor out)  {
 		out = CNN_Net->forward(out); // shape: [ batch_size * 256 * 6 * 6 ]
