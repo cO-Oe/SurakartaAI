@@ -26,11 +26,11 @@ class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
             generate_states(tensor_stack, next, pieces_[index]);
             
             // set state
-            torch::Tensor state_tensor = torch::from_blob(tensor_stack, {3, 6, 6});
+            torch::Tensor state_tensor = torch::from_blob(tensor_stack, {3, 6, 6}).to(device);
             
             // set label
             int64_t label = labels_[index];
-            torch::Tensor label_tensor = torch::full({1}, label);
+            torch::Tensor label_tensor = torch::full({1}, label).to(device);
 
             return {state_tensor, label_tensor};
         };
@@ -62,16 +62,17 @@ void train_Net(const episode &game, const int num_epoch = 10) {
         for (torch::data::Example<>& batch : *data_loader) {
             auto boards_ = batch.data;
             auto labels_ = batch.target.squeeze();  // reduce dim from (1, x) to (x)
-            boards_ = boards_.to(torch::kF32);
-            labels_ = labels_.to(torch::kF32);
+            boards_ = boards_.to(torch::kF32).to(device);
+            labels_ = labels_.to(torch::kF32).to(device);
             // std::cerr << "boards is : " << boards_ << '\n';
             optimizer.zero_grad();
             auto output = Net->forward(boards_);
+	    //optimizer.zero_grad();
             // std::cerr << "label is: " << labels_ << "\n Shape is: " << labels_.sizes() << '\n';
             // std::cerr << "output is: " << output << "\n Shape is: " << output.sizes() << '\n';
             // criterion = torch::nn::MSELoss();
 
-            auto loss = torch::mse_loss(output, labels_);
+            auto loss = torch::mse_loss(output, labels_).to(device);
 
             loss.backward();
             optimizer.step();

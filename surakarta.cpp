@@ -36,11 +36,14 @@ int main(int argc, char* argv[]) {
 	}
 
 	torch::load(Net, "model.pt");
+	
+	Net->to(device);
 
 	statistic stat(total, block);
 
 	player play {BLACK};//0
 	envir env {WHITE};//1
+	int cnt = 0;
 
 	while (!stat.is_finished()) {
 
@@ -69,8 +72,8 @@ int main(int argc, char* argv[]) {
 
 		// train Network 
 		train_Net(game); // episode, epochs
-	
+		if ( (cnt++)%100 == 0 ) 
+			torch::save(Net, "model.pt");
 	}
-	torch::save(Net, "model.pt");
 	return 0;
 }

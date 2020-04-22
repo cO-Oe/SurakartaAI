@@ -72,8 +72,8 @@ public:
 			float tensor_stack[stacks * board::SIZE];
 			generate_states(tensor_stack, next, piece);
 
-			torch::Tensor boards = torch::from_blob(tensor_stack, {1, 3, 6, 6}); // shape: [batch_size, stacks, row, col]
-			torch::Tensor pred_val = Net->forward(boards);
+			torch::Tensor boards = torch::from_blob(tensor_stack, {1, 3, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
+			torch::Tensor pred_val = Net->forward(boards).to(device);
 
 			double pred = pred_val[0].item<double>();
 			
