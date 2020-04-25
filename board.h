@@ -71,7 +71,7 @@ public:
 private:
 	grid tile;
 	
-	std::vector<Pair> step_stack;
+	std::vector<Pair> step_stack[2];
 	static const std::size_t stack_limit = 5;
 public:
 	int step;//if odd, white's turn if even, black's turn
@@ -257,9 +257,9 @@ private:
 		std::vector<char> movable;
 		char forbidden_pos = 87;
 
-		if (step_stack.size() == stack_limit) {
-			forbidden_pos = step_stack.back().prev;
-			step_stack.clear();
+		if (step_stack[piece].size() >= 5) {
+			forbidden_pos = step_stack[piece].back().prev;
+			step_stack[piece].clear();
 		}
 		// 8 directions
 		char dir[8] {-7, -6, -5, -1, 1, 5, 6, 7};
@@ -284,7 +284,7 @@ private:
 		for (auto &d : dir) {
 			if (d == no_move) continue;
 			auto next_pos = (*this)(pos + d);
-			if ( next_pos == SPACE && next_pos != forbidden_pos){
+			if ( next_pos == SPACE && ((pos + d) != forbidden_pos)){
 				movable.push_back(pos + d);
 			}
 		}
@@ -345,11 +345,13 @@ public:
 		// << place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
 		
 		// check repeated moves
-		if ( ((*this)(place_pos) == SPACE) && !step_stack.empty() &&(step_stack.back() == Pair{place_pos, prev_pos})) {
-			step_stack.push_back({prev_pos, place_pos});
+		if (step_stack[piece].empty())
+			step_stack[piece].push_back({prev_pos, place_pos});
+		else if ( ((*this)(place_pos) == SPACE) && (step_stack[piece].back() == Pair{place_pos, prev_pos})) {
+			step_stack[piece].push_back({prev_pos, place_pos});
 		}
 		else {
-			step_stack.clear();
+			step_stack[piece].clear();
 		}
 
 		(*this)(place_pos) = piece;

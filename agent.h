@@ -3,6 +3,7 @@
 #include "MonteCarlo.h"
 #include "policy.h"
 #include <functional>
+#include <iostream>
 /*
 
 any rule for a player will write here
@@ -73,6 +74,7 @@ public:
 		Pair mv = Policy::NN(before, piece);
 		EXEC_STATE S = before.move(mv.prev, mv.next, piece);
 		if (S==FAIL) {
+			std::cerr << "failed\n";
 			return Pair{};
 		}
 		else
