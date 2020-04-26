@@ -71,6 +71,8 @@ public:
 private:
 	grid tile;
 	
+	std::vector<Pair> step_stack[2];
+	static const std::size_t stack_limit = 5;
 public:
 	int step;//if odd, white's turn if even, black's turn
 	
@@ -80,6 +82,7 @@ public:
 	static constexpr std::array<int, 4> corner_pos {0, 5, 30, 35};
 	// std::map<char, std::pair<char, std::function< EXEC_STATE(char&, bool , const bool&, char&)> > >mapping_circle;
 	static std::unordered_map<char, std::pair<char, DIRECTION > >mapping_circle; // declare below
+
 
 	void init_board() {
 		
@@ -249,9 +252,15 @@ private:
 		}
 	}
 	// check whether the moves are available
-	std::vector<char> check_move (const char &pos, const PIECE &piece) const {
+	// NEW!! Add new rules: no return moves after 3 times.
+	std::vector<char> check_move (const char &pos, const PIECE &piece)  {
 		std::vector<char> movable;
-		
+		char forbidden_pos = 87;
+
+		if (step_stack[piece].size() >= 5) {
+			forbidden_pos = step_stack[piece].back().prev;
+			step_stack[piece].clear();
+		}
 		// 8 directions
 		char dir[8] {-7, -6, -5, -1, 1, 5, 6, 7};
 		const char no_move {0};
@@ -274,7 +283,8 @@ private:
 		
 		for (auto &d : dir) {
 			if (d == no_move) continue;
-			if ( (*this)(pos + d) == SPACE ){
+			auto next_pos = (*this)(pos + d);
+			if ( next_pos == SPACE && ((pos + d) != forbidden_pos)){
 				movable.push_back(pos + d);
 			}
 		}
@@ -333,6 +343,16 @@ public:
 		// std::cout << piece << "'s chance.\n";
 		// std::cout << "Move from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
 		// << place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
+		
+		// check repeated moves
+		if (step_stack[piece].empty())
+			step_stack[piece].push_back({prev_pos, place_pos});
+		else if ( ((*this)(place_pos) == SPACE) && (step_stack[piece].back() == Pair{place_pos, prev_pos})) {
+			step_stack[piece].push_back({prev_pos, place_pos});
+		}
+		else {
+			step_stack[piece].clear();
+		}
 
 		(*this)(place_pos) = piece;
 		(*this)(prev_pos) = SPACE;

@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	torch::load(Net, "model.pt");
+	// torch::load(Net, "model.pt");
 	
 	Net->to(device);
 
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 			std::cout << b << '\n';
 			// sleep(3);
 		}
-		agent& win = game.winner(env, play);
+		agent& win = game.get_winner(env, play);
 		stat.close_episode("end", win, b);
 
 		// train Network 

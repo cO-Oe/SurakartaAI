@@ -46,7 +46,9 @@ void train_Net(const episode &game, const int num_epoch = 10) {
 
     // load dataset    
     const int64_t batch_size = 16;
-    std::vector<int> game_labels(game.ep_boards.size(), game.result);
+
+    // WARNING: Hard Code Agent!!!                     (Because Player use NN policy)
+    std::vector<int> game_labels(game.ep_boards.size(), game.player_result);
 
     auto data_set = BoardDataSet(game.ep_boards, game.ep_pieces, game_labels).map(torch::data::transforms::Stack<>());
     

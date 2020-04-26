@@ -23,37 +23,54 @@ public:
 
 	const board& state() const { return ep_state; }
 
-    void open_episode(const std::string& tag) {
+    void open_episode (const std::string& tag) {
 		ep_open = { tag, millisec() };
 	}
 
-	void close_episode(const std::string &tag, const agent &winner, const board &b) {
+	void close_episode (const std::string &tag, const agent &winner, const board &b) {
 		who_win = winner.name();
 		win_piece = b.count_piece(winner.get_piece());
-		result = (winner.get_piece()==BLACK) ? 0:1;
+		
+		// if cast correctly
+		if ( dynamic_cast<const player*>(&winner) ) {
+			player_result = 1;
+			envir_result = -1;
+		}
+		else if ( dynamic_cast<const envir*>(&winner)) {
+			player_result = -1;
+			envir_result = 1;
+		}
+		else {
+			std::cerr << "fucking error\n";
+
+			// error on casting
+			exit(-1);
+		}
 		ep_close = { tag, millisec() };
 	}
 
 	//save every action in episode
-    void record_action(const Pair &move, const board &b, const PIECE &piece) {
+    void record_action (const Pair &move, const board &b, const PIECE &piece) {
 		ep_moves.emplace_back( move, 0, millisec() - ep_time );
 		ep_boards.emplace_back(b);
 		ep_pieces.emplace_back(piece);
 	}
 
-
-	agent& winner(agent& play, agent& env) {
-		return (take_turns(play, env) == play) ? env : play;
-	}
-
 	//decide whose turn
-    agent& take_turns(agent& play, agent& env) {
+    agent& take_turns (agent& play, agent& env) {
 		ep_time = millisec();
 		
 		if (env.get_piece() == BLACK)
 			return ((step() + 1) % 2) ? env : play;
 		else
 			return ((step() + 1) % 2) ? play : env;
+	}
+	// get winner agent
+	agent& get_winner (agent &play, agent& env) {
+		if (env.get_piece() == BLACK)
+			return ((step() + 1) % 2) ? play : env ;
+		else
+			return ((step() + 1) % 2) ? env : play ;		
 	}
 
 public:
@@ -131,7 +148,9 @@ public:
 	std::vector<move> ep_moves;
 	std::vector<board> ep_boards;
 	std::vector<PIECE> ep_pieces;
-	int result;
+	int player_result;
+	int envir_result;
+
 private:
 	std::string who_win;
 	unsigned win_piece;
