@@ -258,8 +258,11 @@ private:
 		char forbidden_pos = 87;
 
 		if (step_stack[piece].size() >= 5) {
-			forbidden_pos = step_stack[piece].back().prev;
-			step_stack[piece].clear();
+			if (pos == step_stack[piece].back().next){
+				forbidden_pos = step_stack[piece].back().prev;
+				step_stack[piece].clear();
+				std::cerr << "ENTER\nENTER\n\n";
+			}
 		}
 		// 8 directions
 		char dir[8] {-7, -6, -5, -1, 1, 5, 6, 7};
@@ -284,7 +287,8 @@ private:
 		for (auto &d : dir) {
 			if (d == no_move) continue;
 			auto next_pos = (*this)(pos + d);
-			if ( next_pos == SPACE && ((pos + d) != forbidden_pos)){
+			if ( next_pos == SPACE && (int(pos + d) != int(forbidden_pos))){
+				//std::cerr << int(pos+d) << ' ' << int(forbidden_pos) << '\n';
 				movable.push_back(pos + d);
 			}
 		}
@@ -352,6 +356,7 @@ public:
 		}
 		else {
 			step_stack[piece].clear();
+			step_stack[piece].push_back({prev_pos, place_pos});
 		}
 
 		(*this)(place_pos) = piece;

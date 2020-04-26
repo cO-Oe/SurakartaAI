@@ -25,6 +25,7 @@ int main(int argc, char* argv[]) {
 	std::cout << "\n\n";
 
 	size_t total = 5, block = 0;
+	std::string load_module;
 	for (int i{1}; i < argc; i++) {
 		std::string para(argv[i]);
 		if (para.find("--total=") == 0) {
@@ -33,9 +34,14 @@ int main(int argc, char* argv[]) {
 		else if (para.find("--block=") == 0) {
 			block = std::stoull(para.substr(para.find("=") + 1));
 		}
+		else if (para.find("--load=") == 0) {
+			load_module = para.substr(para.find("=") + 1);
+		}
 	}
-
-	// torch::load(Net, "model.pt");
+	if (!load_module.empty()){
+		torch::load(Net, load_module);
+		torch::load(optimizer, "optimizer.pt");
+	}
 	
 	Net->to(device);
 
@@ -63,8 +69,8 @@ int main(int argc, char* argv[]) {
 			if (mv == Pair{})
 				break;
 			game.record_action(mv, prev_b, who.get_piece());
-
-			std::cout << b << '\n';
+			if (who.get_piece() == BLACK)
+				std::cout << b << '\n';
 			// sleep(3);
 		}
 		agent& win = game.get_winner(env, play);
@@ -72,8 +78,10 @@ int main(int argc, char* argv[]) {
 
 		// train Network 
 		train_Net(game); // episode, epochs
-		if ( (cnt++)%100 == 0 ) 
+		if ( (++cnt)%100 == 0 ){ 
 			torch::save(Net, "model.pt");
+			torch::save(optimizer, "optimizer.pt");
+		}
 	}
 	return 0;
 }

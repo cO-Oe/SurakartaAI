@@ -2,7 +2,7 @@
 #include <torch/torch.h>
 #include "board.h"
 
-torch::Device device (torch::kCPU);
+torch::Device device (torch::kCUDA);
 class CNNImpl : public torch::nn::Module {
 public:
 	CNNImpl() : 

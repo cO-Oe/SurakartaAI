@@ -59,7 +59,7 @@ public:
 		const int epsilon = 10;
 		Pair best_move{};
 
-		std::cerr << "Net take action: \n\n";
+		std::cerr << "Net take action: \npiece: " << piece << '\n';
 
 		std::random_device rd;
 		std::default_random_engine engine(rd());
@@ -67,7 +67,7 @@ public:
 
 		int prob = distribution(engine);
 
-		if ( prob > epsilon ) {	// 1-epsilon : NN output
+		if ( prob >= 10) {	// 1-epsilon : NN output
 			
 			//std::cerr << "exploit: " << prob << '\n';
 
@@ -76,7 +76,8 @@ public:
 			auto moves = now.get_available_move(piece);
 
 			double max_val = -2.0;
-			
+			std::vector<Pair> bags;
+
 			// enumerate all moves
 			for (auto &mv : moves) {
 				board next = now;
@@ -91,13 +92,25 @@ public:
 				torch::Tensor pred_val = Net->forward(boards).to(device);
 
 				double pred = pred_val[0].item<double>();
-				
+				// std::cerr << "Q value: " << pred << '\n';	
 				// find the best V(s)
-				if (pred > max_val) {
+				double diff = pred - max_val;
+				if ( abs(diff) < 1e-5) {
+					bags.push_back(mv);
+				}
+				else if (diff > 1e-5){
+					bags.clear();
+					bags.push_back(mv);
 					max_val = pred;
-					best_move = mv;				
+					// best_move = mv;
 				}
 			}
+			if (!bags.empty()){
+				std::shuffle(bags.begin(), bags.end(), engine);
+				return bags[0];
+			}
+			else
+				return {};
 		}
 		else { // epsilon : random move
 			// std::cerr << "explore: " << prob << '\n';;

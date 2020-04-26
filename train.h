@@ -40,6 +40,8 @@ class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
         };
 };
 
+torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions(1e-3));
+
 void train_Net(const episode &game, const int num_epoch = 10) {
     // std::cout << "Sep1\n";
     // std::cout << Net->parameters() << '\n';
@@ -48,14 +50,19 @@ void train_Net(const episode &game, const int num_epoch = 10) {
     const int64_t batch_size = 16;
 
     // WARNING: Hard Code Agent!!!                     (Because Player use NN policy)
-    std::vector<int> game_labels(game.ep_boards.size(), game.player_result);
-
+    // std::vector<int> game_labels(game.ep_boards.size(), game.player_result);
+	std::vector<int> game_labels;
+	int win = game.player_result; // player first
+	for(int i=0; i<game.ep_boards.size(); i++) {
+		game_labels.push_back(win);
+		win = -win;
+	}
     auto data_set = BoardDataSet(game.ep_boards, game.ep_pieces, game_labels).map(torch::data::transforms::Stack<>());
     
     auto data_loader = torch::data::make_data_loader(data_set, torch::data::DataLoaderOptions().batch_size(batch_size).workers(2));
     
     // construct optimizer
-    torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions(1e-3));
+    // torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions(1e-3));
     
     std::cerr << "Start to train Network: \n\n";
     for(int epoch=1; epoch <= num_epoch; epoch++) {
@@ -70,8 +77,8 @@ void train_Net(const episode &game, const int num_epoch = 10) {
             optimizer.zero_grad();
             auto output = Net->forward(boards_);
 	    //optimizer.zero_grad();
-            // std::cerr << "label is: " << labels_ << "\n Shape is: " << labels_.sizes() << '\n';
-            // std::cerr << "output is: " << output << "\n Shape is: " << output.sizes() << '\n';
+            //std::cerr << "label is: " << labels_ << "\n Shape is: " << labels_.sizes() << '\n';
+            //std::cerr << "output is: " << output << "\n Shape is: " << output.sizes() << '\n';
             // criterion = torch::nn::MSELoss();
 
             auto loss = torch::mse_loss(output, labels_).to(device);
