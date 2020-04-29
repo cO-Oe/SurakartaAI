@@ -69,12 +69,16 @@ public:
 		int prob = distribution(engine);
 
 		if ( prob >= epsilon) {	// 1-epsilon : NN output
-			
+			board now = before;
+
+			if (piece == WHITE) {
+				now.flip_color();
+			}
 			//std::cerr << "exploit: " << prob << '\n';
 
-			board now = before;
 			// get legal action
-			auto moves = now.get_available_move(piece);
+				
+			auto moves = now.get_available_move(BLACK);
 
 			double max_val = -2.0;
 			std::vector<Pair> bags;
@@ -86,9 +90,7 @@ public:
 
 				const int stacks = 3; // black*1 + white*1 + take_turn
 
-				if (piece == BLACK) {
-					next.flip_color();
-				}
+				
 				float tensor_stack[stacks * board::SIZE];
 				generate_states(tensor_stack, next);
 				torch::Tensor boards = torch::from_blob(tensor_stack, {1, 1, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
