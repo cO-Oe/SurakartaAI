@@ -61,8 +61,16 @@ void generate_states(float *board_stacks, const board &next) {
 	
 	// static float board_stacks[(stacks*2 + 1) * board::SIZE];
 	for (int i=0; i<36; i++) {
-        *(board_stacks + (i) ) = next(i);
-    }
+		auto p = next(i);
+		if (p==SPACE)
+        	*(board_stacks + (i) ) = 0;
+		else if(p==BLACK)
+        	*(board_stacks + (i) ) = 1;
+
+		else if(p==WHITE)
+        	*(board_stacks + (i) ) = 2;
+
+	}	
 
 
 	// int idx = 0;

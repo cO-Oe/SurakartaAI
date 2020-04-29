@@ -349,8 +349,9 @@ public:
 		// << place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
 		
 		// check repeated moves
-		if (step_stack[piece].empty())
+		if (step_stack[piece].empty()){
 			step_stack[piece].push_back({prev_pos, place_pos});
+		}
 		else if ( ((*this)(place_pos) == SPACE) && (step_stack[piece].back() == Pair{place_pos, prev_pos})) {
 			step_stack[piece].push_back({prev_pos, place_pos});
 		}

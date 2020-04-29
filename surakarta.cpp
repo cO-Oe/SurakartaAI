@@ -81,9 +81,10 @@ int main(int argc, char* argv[]) {
 		}
 		agent& win = game.get_winner(env, play);
 		stat.close_episode("end", win, b);
+		train_set_game.train_close_episode(win, b);
 
 		// train Network 
-		if ( (++cnt) % 100 == 0 ){ 
+		if ( (++cnt) % 5 == 0 ){ 
 			train_Net(train_set_game); // episode, epochs
 			train_set_game.clear();
 			torch::save(Net, "model.pt");

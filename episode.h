@@ -46,13 +46,30 @@ public:
 			exit(-1);
 		}
 
+		ep_close = { tag, millisec() };
+	}
+
+	void train_close_episode ( const agent &winner, const board &b) {
+		if ( dynamic_cast<const player*>(&winner) ) {
+			player_result = 1;
+			envir_result = -1;
+		}
+		else if ( dynamic_cast<const envir*>(&winner)) {
+			player_result = -1;
+			envir_result = 1;
+		}
+		else {
+			std::cerr << "fucking error\n";
+			// error on casting
+			exit(-1);
+		}
+
 		int win = player_result; // player first
 		for(int i=0; i<ep_boards.size(); i++) {
 			train_result.push_back(win);
 			win = -win;
 		}
-
-		ep_close = { tag, millisec() };
+		ep_boards.clear();
 	}
 
 	//save every action in episode
@@ -68,6 +85,8 @@ public:
 			b_.flip_color();
 		
 		train_boards.push_back(b_);
+		ep_boards.emplace_back(b);
+
 		std::cerr << b_ << '\n';
 
 	}
