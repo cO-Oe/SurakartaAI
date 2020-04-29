@@ -40,9 +40,12 @@ int main(int argc, char* argv[]) {
 	}
 	if (!load_module.empty()){
 		torch::load(Net, load_module);
-		torch::load(optimizer, "optimizer.pt");
 	}
 	
+	if (torch::cuda::is_available()) {
+		std::cout << "Train on GPU\n";
+		device = torch::kCUDA;
+	}
 	Net->to(device);
 
 	statistic stat(total, block);
@@ -50,6 +53,7 @@ int main(int argc, char* argv[]) {
 	player play {BLACK};//0
 	envir env {WHITE};//1
 	int cnt = 0;
+	episode train_set_game;
 
 	while (!stat.is_finished()) {
 
@@ -69,18 +73,21 @@ int main(int argc, char* argv[]) {
 			if (mv == Pair{})
 				break;
 			game.record_action(mv, prev_b, who.get_piece());
-			if (who.get_piece() == BLACK)
-				std::cout << b << '\n';
+			train_set_game.record_train_board(b, who.get_piece());
+			
+			// if (who.get_piece() == BLACK)
+				// std::cout << b << '\n';
 			// sleep(3);
 		}
 		agent& win = game.get_winner(env, play);
 		stat.close_episode("end", win, b);
 
 		// train Network 
-		train_Net(game); // episode, epochs
-		if ( (++cnt)%100 == 0 ){ 
+		if ( (++cnt) % 100 == 0 ){ 
+			train_Net(train_set_game); // episode, epochs
+			train_set_game.clear();
 			torch::save(Net, "model.pt");
-			torch::save(optimizer, "optimizer.pt");
+			// torch::save(optimizer, "optimizer.pt");
 		}
 	}
 	return 0;

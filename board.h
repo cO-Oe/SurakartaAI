@@ -406,6 +406,18 @@ private:
 	inline void rotate_right (char &pos) { transpose(pos); reflect_horizontal(pos); }
 
 	inline void rotate_left (char &pos) { transpose(pos); reflect_vertical(pos); }
+public:
+	inline void flip_color () {
+
+		for (int r = 0; r < COL; r++) {
+			for (int c = 0; c < COL; c++ ) {
+				if (tile[r][c] == WHITE)
+					tile[r][c] = BLACK;
+				else if (tile[r][c] == BLACK)
+					tile[r][c] = WHITE; 
+			}
+		}
+	}
 
 public:
 /*

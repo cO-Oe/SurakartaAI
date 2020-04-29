@@ -5,28 +5,30 @@
 
 #include <vector>
 
+// transform function
+
+
 class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
     private:
         std::vector<board> states_; 
         std::vector<int> labels_;
         std::vector<PIECE> pieces_;
     public:
-        explicit BoardDataSet(const std::vector<board> st, const std::vector<PIECE> piece, const std::vector<int> label) 
+        explicit BoardDataSet(const std::vector<board> st, const std::vector<int> label) 
         : states_(st),
-          labels_(label),
-          pieces_(piece) {};
+          labels_(label) {}
 
 
         torch::data::Example<> get(size_t index) override {
             board next = states_[index];
 
             // copy board value
-            const int stacks = 3;
-            float tensor_stack[stacks * board::SIZE];
-            generate_states(tensor_stack, next, pieces_[index]);
+            // const int stacks = 3;
+            float tensor_stack[board::SIZE];
+            generate_states(tensor_stack, next);
             
             // set state
-            torch::Tensor state_tensor = torch::from_blob(tensor_stack, {3, 6, 6}).to(device);
+            torch::Tensor state_tensor = torch::from_blob(tensor_stack, {1, 6, 6}).to(device);
             
             // set label
             int64_t label = labels_[index];
@@ -40,29 +42,28 @@ class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
         };
 };
 
-torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions(1e-3));
+
 
 void train_Net(const episode &game, const int num_epoch = 10) {
-    // std::cout << "Sep1\n";
-    // std::cout << Net->parameters() << '\n';
 
     // load dataset    
     const int64_t batch_size = 16;
 
     // WARNING: Hard Code Agent!!!                     (Because Player use NN policy)
     // std::vector<int> game_labels(game.ep_boards.size(), game.player_result);
-	std::vector<int> game_labels;
-	int win = game.player_result; // player first
-	for(int i=0; i<game.ep_boards.size(); i++) {
-		game_labels.push_back(win);
-		win = -win;
-	}
-    auto data_set = BoardDataSet(game.ep_boards, game.ep_pieces, game_labels).map(torch::data::transforms::Stack<>());
+	// std::vector<int> game_labels;
+	// int win = game.player_result; // player first
+
+	// for(int i=0; i < game.ep_boards.size(); i++) {
+	// 	game_labels.push_back(win);
+	// 	win = -win;
+	// }
+    auto data_set = BoardDataSet(game.train_boards, game.train_result).map(torch::data::transforms::Stack<>());
     
     auto data_loader = torch::data::make_data_loader(data_set, torch::data::DataLoaderOptions().batch_size(batch_size).workers(2));
     
     // construct optimizer
-    // torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions(1e-3));
+    torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions(1e-3));
     
     std::cerr << "Start to train Network: \n\n";
     for(int epoch=1; epoch <= num_epoch; epoch++) {
@@ -74,15 +75,14 @@ void train_Net(const episode &game, const int num_epoch = 10) {
             boards_ = boards_.to(torch::kF32).to(device);
             labels_ = labels_.to(torch::kF32).to(device);
             // std::cerr << "boards is : " << boards_ << '\n';
-            optimizer.zero_grad();
             auto output = Net->forward(boards_);
-	    //optimizer.zero_grad();
             //std::cerr << "label is: " << labels_ << "\n Shape is: " << labels_.sizes() << '\n';
             //std::cerr << "output is: " << output << "\n Shape is: " << output.sizes() << '\n';
-            // criterion = torch::nn::MSELoss();
 
             auto loss = torch::mse_loss(output, labels_).to(device);
-
+            
+            // update SGD
+            optimizer.zero_grad();
             loss.backward();
             optimizer.step();
 
@@ -94,6 +94,4 @@ void train_Net(const episode &game, const int num_epoch = 10) {
         std::cout << "Epoch " << epoch << ": " << "Mean square error: " << mse << '\n';
 
     }
-    // std::cout << "Sep2\n";
-    // std::cout << Net->parameters() << '\n';
 }

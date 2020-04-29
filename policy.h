@@ -1,5 +1,6 @@
 #include "MonteCarlo.h"
 #include "NN.h"
+// #include "train.h"
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -67,7 +68,7 @@ public:
 
 		int prob = distribution(engine);
 
-		if ( prob >= 10) {	// 1-epsilon : NN output
+		if ( prob >= epsilon) {	// 1-epsilon : NN output
 			
 			//std::cerr << "exploit: " << prob << '\n';
 
@@ -85,43 +86,35 @@ public:
 
 				const int stacks = 3; // black*1 + white*1 + take_turn
 
+				if (piece == BLACK) {
+					next.flip_color();
+				}
 				float tensor_stack[stacks * board::SIZE];
-				generate_states(tensor_stack, next, piece);
-
-				torch::Tensor boards = torch::from_blob(tensor_stack, {1, 3, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
+				generate_states(tensor_stack, next);
+				torch::Tensor boards = torch::from_blob(tensor_stack, {1, 1, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
 				torch::Tensor pred_val = Net->forward(boards).to(device);
 
 				double pred = pred_val[0].item<double>();
 				// std::cerr << "Q value: " << pred << '\n';	
 				// find the best V(s)
-				double diff = pred - max_val;
-				if ( abs(diff) < 1e-5) {
-					bags.push_back(mv);
-				}
-				else if (diff > 1e-5){
-					bags.clear();
-					bags.push_back(mv);
+				if ( pred > max_val) {
 					max_val = pred;
-					// best_move = mv;
+					best_move = mv;
 				}
 			}
-			if (!bags.empty()){
-				std::shuffle(bags.begin(), bags.end(), engine);
-				return bags[0];
-			}
-			else
-				return {};
 		}
 		else { // epsilon : random move
 			// std::cerr << "explore: " << prob << '\n';;
-			std::vector<Pair> ea = before.find_piece(piece, EAT), mv = before.find_piece(piece, MOVE), pos;
-			pos.reserve(ea.size() + mv.size());
-			pos.insert(pos.end(), ea.begin(), ea.end());
-			pos.insert(pos.end(), mv.begin(), mv.end());
+			// std::vector<Pair> ea = before.find_piece(piece, EAT), mv = before.find_piece(piece, MOVE), pos;
+			// pos.reserve(ea.size() + mv.size());
+			// pos.insert(pos.end(), ea.begin(), ea.end());
+			// pos.insert(pos.end(), mv.begin(), mv.end());
+			// std::vector<Pair> ea = before.find_piece(piece, EAT), mv = before.find_piece(piece, MOVE), pos;
+			std::vector<Pair> legal_mv = before.get_available_move(piece);
 
-			if ( !pos.empty() ) {
-				std::shuffle(pos.begin(), pos.end(), engine);
-				best_move = pos[0];
+			if ( !legal_mv.empty() ) {
+				std::shuffle(legal_mv.begin(), legal_mv.end(), engine);
+				best_move = legal_mv[0];
 			}
 		}
 

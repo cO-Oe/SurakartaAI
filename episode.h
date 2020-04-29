@@ -42,10 +42,16 @@ public:
 		}
 		else {
 			std::cerr << "fucking error\n";
-
 			// error on casting
 			exit(-1);
 		}
+
+		int win = player_result; // player first
+		for(int i=0; i<ep_boards.size(); i++) {
+			train_result.push_back(win);
+			win = -win;
+		}
+
 		ep_close = { tag, millisec() };
 	}
 
@@ -54,6 +60,16 @@ public:
 		ep_moves.emplace_back( move, 0, millisec() - ep_time );
 		ep_boards.emplace_back(b);
 		ep_pieces.emplace_back(piece);
+	}
+	void record_train_board(const board &b, const PIECE &piece) {
+		board b_ = b;
+
+		if (piece == WHITE) 
+			b_.flip_color();
+		
+		train_boards.push_back(b_);
+		std::cerr << b_ << '\n';
+
 	}
 
 	//decide whose turn
@@ -70,7 +86,13 @@ public:
 		if (env.get_piece() == BLACK)
 			return ((step() + 1) % 2) ? play : env ;
 		else
-			return ((step() + 1) % 2) ? env : play ;		
+			return ((step() + 1) % 2) ? env : play ;
+	
+	}
+
+	void clear() {
+		train_boards.clear();
+		train_result.clear();
 	}
 
 public:
@@ -125,13 +147,6 @@ struct meta {
 		std::string tag;
 		time_t when;
 		meta(const std::string& tag = "N/A", time_t when = 0) : tag(tag), when(when) {}
-
-		// friend ostream& operator <<(ostream& out, const meta& m) {
-		// 	return out << m.tag << "@" << dec << m.when;
-		// }
-		// friend istream& operator >>(istream& in, meta& m) {
-		// 	return getline(in, m.tag, '@') >> dec >> m.when;
-		// }
 	};
 
 	static board initial_state() {
@@ -148,6 +163,8 @@ public:
 	std::vector<move> ep_moves;
 	std::vector<board> ep_boards;
 	std::vector<PIECE> ep_pieces;
+	std::vector<board> train_boards;
+	std::vector<int> train_result;
 	int player_result;
 	int envir_result;
 

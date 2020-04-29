@@ -2,13 +2,15 @@
 #include <torch/torch.h>
 #include "board.h"
 
-torch::Device device (torch::kCUDA);
+
+torch::Device device (torch::kCPU);
+
 class CNNImpl : public torch::nn::Module {
 public:
 	CNNImpl() : 
 
 	CNN_Net(
-		torch::nn::Conv2d(torch::nn::Conv2dOptions(3, 64, 3).stride(1).padding(1).bias(false)), // shape: [ 64 * 6 * 6 ]
+		torch::nn::Conv2d(torch::nn::Conv2dOptions(1, 64, 3).stride(1).padding(1).bias(false)), // shape: [ 64 * 6 * 6 ]
 		torch::nn::ReLU(),
 
 		// Layer 2
@@ -54,20 +56,22 @@ TORCH_MODULE(CNN);
 // Declaration Network
 CNN Net;
 
-// transform function
-void generate_states(float *board_stacks, const board &next, const PIECE piece) {
+
+void generate_states(float *board_stacks, const board &next) {
 	
 	// static float board_stacks[(stacks*2 + 1) * board::SIZE];
-	
-	int idx = 0;
-	for(int i=0; i<36; i++)
-		*(board_stacks + (idx++)) = next.black_board()(i);
-	for(int i=0; i<36; i++)
-		*(board_stacks + (idx++)) = next.white_board()(i);
-	for(int i=0; i<36; i++)
-		*(board_stacks + (idx++)) = (piece == BLACK) ? 1:0;
+	for (int i=0; i<36; i++) {
+        *(board_stacks + (i) ) = next(i);
+    }
 
-	// return board_stacks;
+
+	// int idx = 0;
+	// for(int i=0; i<36; i++)
+	// 	*(board_stacks + (idx++)) = next.black_board()(i);
+	// for(int i=0; i<36; i++)
+	// 	*(board_stacks + (idx++)) = next.white_board()(i);
+	// for(int i=0; i<36; i++)
+	// 	*(board_stacks + (idx++)) = (piece == BLACK) ? 1:0;
+
 }
-
 
