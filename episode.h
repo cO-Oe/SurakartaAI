@@ -87,7 +87,7 @@ public:
 		train_boards.push_back(b_);
 		ep_boards.emplace_back(b);
 
-		std::cerr << b_ << '\n';
+		// std::cerr << b_ << '\n';
 
 	}
 
@@ -101,8 +101,11 @@ public:
 			return ((step() + 1) % 2) ? play : env;
 	}
 	// get winner agent
-	agent& get_winner (agent &play, agent& env) {
-		if (env.get_piece() == BLACK)
+	agent& get_winner (agent &play, agent& env, board& b) {
+		if( step() > 100 ) {
+			return ((b.compare_piece()) ? env : play);
+		}
+		else if (env.get_piece() == BLACK)
 			return ((step() + 1) % 2) ? play : env ;
 		else
 			return ((step() + 1) % 2) ? env : play ;

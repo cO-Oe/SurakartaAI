@@ -68,7 +68,7 @@ public:
 
 		int prob = distribution(engine);
 
-		if ( prob >= epsilon) {	// 1-epsilon : NN output
+		//if ( prob >= epsilon) {	// 1-epsilon : NN output
 			board now = before;
 
 			if (piece == WHITE) {
@@ -88,7 +88,7 @@ public:
 				board next = now;
 				next.move(mv.prev, mv.next, piece);
 
-				const int stacks = 3; // black*1 + white*1 + take_turn
+				const int stacks = 1; // black*1 + white*1 + take_turn
 
 				
 				float tensor_stack[stacks * board::SIZE];
@@ -104,21 +104,21 @@ public:
 					best_move = mv;
 				}
 			}
-		}
-		else { // epsilon : random move
-			// std::cerr << "explore: " << prob << '\n';;
-			// std::vector<Pair> ea = before.find_piece(piece, EAT), mv = before.find_piece(piece, MOVE), pos;
-			// pos.reserve(ea.size() + mv.size());
-			// pos.insert(pos.end(), ea.begin(), ea.end());
-			// pos.insert(pos.end(), mv.begin(), mv.end());
-			// std::vector<Pair> ea = before.find_piece(piece, EAT), mv = before.find_piece(piece, MOVE), pos;
-			std::vector<Pair> legal_mv = before.get_available_move(piece);
+	//	}
+		// else { // epsilon : random move
+		// 	// std::cerr << "explore: " << prob << '\n';;
+		// 	// std::vector<Pair> ea = before.find_piece(piece, EAT), mv = before.find_piece(piece, MOVE), pos;
+		// 	// pos.reserve(ea.size() + mv.size());
+		// 	// pos.insert(pos.end(), ea.begin(), ea.end());
+		// 	// pos.insert(pos.end(), mv.begin(), mv.end());
+		// 	// std::vector<Pair> ea = before.find_piece(piece, EAT), mv = before.find_piece(piece, MOVE), pos;
+		// 	std::vector<Pair> legal_mv = before.get_available_move(piece);
 
-			if ( !legal_mv.empty() ) {
-				std::shuffle(legal_mv.begin(), legal_mv.end(), engine);
-				best_move = legal_mv[0];
-			}
-		}
+		// 	if ( !legal_mv.empty() ) {
+		// 		std::shuffle(legal_mv.begin(), legal_mv.end(), engine);
+		// 		best_move = legal_mv[0];
+		// 	}
+		// }
 
 		return best_move;		
 	}

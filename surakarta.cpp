@@ -70,21 +70,22 @@ int main(int argc, char* argv[]) {
 			Pair mv = who.take_action(b);
 			
 			// end game
-			if (mv == Pair{})
+			if (mv == Pair{} || game.step() > 100)
 				break;
 			game.record_action(mv, prev_b, who.get_piece());
 			train_set_game.record_train_board(b, who.get_piece());
 			
 			// if (who.get_piece() == BLACK)
-				// std::cout << b << '\n';
+			std::cout << b << '\n';
 			// sleep(3);
 		}
-		agent& win = game.get_winner(env, play);
+
+		agent& win = game.get_winner(env, play, b);
 		stat.close_episode("end", win, b);
 		train_set_game.train_close_episode(win, b);
 
 		// train Network 
-		if ( (++cnt) % 5 == 0 ){ 
+		if ( (++cnt) % 1 == 0 ){ 
 			train_Net(train_set_game); // episode, epochs
 			train_set_game.clear();
 			torch::save(Net, "model.pt");

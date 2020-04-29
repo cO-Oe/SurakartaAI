@@ -11,6 +11,7 @@ public:
 
 	CNN_Net(
 		torch::nn::Conv2d(torch::nn::Conv2dOptions(1, 64, 3).stride(1).padding(1).bias(false)), // shape: [ 64 * 6 * 6 ]
+		torch::nn::BatchNorm2d(64),
 		torch::nn::ReLU(),
 
 		// Layer 2
@@ -33,8 +34,7 @@ public:
 		torch::nn::Linear(1024, 512),
 		torch::nn::ReLU(),
 
-		torch::nn::Linear(512, 1),
-		torch::nn::Tanh()
+		torch::nn::Linear(512, 1)
 	) {
 		register_module("CNN_Net", CNN_Net);
 		register_module("FC_Net", FC_Net);
@@ -45,6 +45,7 @@ public:
 
 		out = out.view({ out.sizes()[0] /* batch size*/, -1});
 		out = FC_Net->forward(out);
+
 		return out;
 	}
 	torch::nn::Sequential CNN_Net, FC_Net;
