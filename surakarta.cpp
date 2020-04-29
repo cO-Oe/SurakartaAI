@@ -64,6 +64,7 @@ int main(int argc, char* argv[]) {
 				break;
 			}
 			std::cout << b << '\n';
+			// sleep(3);
 		}
 		// agent& win = game.last_turns(play, env, b);
 		// std::string winner = (win.get_piece() == 1 ? "play" : "env" );

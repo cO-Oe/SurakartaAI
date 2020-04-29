@@ -5,7 +5,6 @@
 #include <iostream>
 #include <sstream>
 #include "board.h"
-#include "action.h"
 #include "agent.h"
 #include "episode.h"
 

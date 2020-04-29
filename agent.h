@@ -1,6 +1,5 @@
 #pragma once
 
-#include "action.h"
 #include "MonteCarlo.h"
 #include "policy.h"
 #include <functional>
@@ -38,7 +37,8 @@ public:
 	int count_piece (const board &b) const {
 		int cnt = 0;
 		for ( int i = 0; i < board::SIZE; i++ ) {
-			if ( b(i) == (this->get_piece() ^ 1) ) 
+			// if ( b(i) == (this->get_piece() ^ 1) ) 
+			if ( b.bb[ (get_piece() ^ 1) ].check(i) )
 				cnt++;
 		}
 		return cnt;
@@ -71,6 +71,7 @@ public:
 	virtual Pair take_action (board &before) override{	
 		
 		Pair mv = Policy::MCTS(before, piece, 5000);
+		// Pair mv = Policy::Greedy(before, piece);
 		EXEC_STATE S = before.move(mv.prev, mv.next, piece);
 		if (S==FAIL) {
 			return Pair{};

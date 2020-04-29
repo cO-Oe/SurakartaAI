@@ -8,10 +8,7 @@
 #include <random>
 #include <vector>
 
-//typedef std::pair<int, int> Pair;
-//#define prev first
-//#define next second
-
+#include "bitboard.h"
 //template <class T>
 
 class Pair {
@@ -58,13 +55,25 @@ public:
 	typedef std::array<char, 6> row;
 	typedef std::array<row, 6> grid;
 private:
-	grid tile;
+	// grid tile;
+public:
+	bitboard bb[2];
 public:
 	int step;//if odd, white's turn if even, black's turn
 	
 	static constexpr int SIZE { 36 };
 	static constexpr int COL { 6 };
 
+	void initial_board() {
+		
+		for (int i{0}; i < (2*COL); ++i) {
+			bb[BLACK].add(i);
+		}
+		for (int i{COL*4}; i < (SIZE); ++i) {
+			bb[WHITE].add(i);
+		}
+	}
+	/*
 	board() : tile(), step(0) {
 		for (int i{0}; i < COL; ++i) {
 			for (int j = 0; j < COL; ++j) {
@@ -74,23 +83,36 @@ public:
 			}
 		}
 	}
-	char& operator()(char i)  { return tile[ i / 6 ][ i % 6 ]; }
-	char operator()(char i) const {return tile[ i / 6 ][ i % 6 ]; }
+	*/
 
-	char& operator()(char x, char y)  { return tile[x][y]; }
-	char operator()(char x, char y) const { return tile[x][y]; }	
+	board() : step(0) {
+		initial_board();
+	}
+
+	// char& operator()(char i)  { return tile[ i / 6 ][ i % 6 ]; }
+	// char operator()(char i) const {return tile[ i / 6 ][ i % 6 ]; }
+
+	// char& operator()(char x, char y)  { return tile[x][y]; }
+	// char operator()(char x, char y) const { return tile[x][y]; }	
 	board& operator =(const board &b) = default;
 
 	inline WIN_STATE compare_piece() const {
 		int b = 0, w = 0;
+		
+		/*
 		for (int i{0}; i < SIZE; ++i) {
 			if ( (*this)(i) == BLACK)
 				b++;
 			else if ( ((*this)(i) == WHITE) )
 				w++;
 		}
+		*/
+		b = bb[BLACK].count();
+		w = bb[WHITE].count();
+		
 		if (b==w)
 			return DRAW;
+		
 		return (b>w) ? BLACK_WIN : WHITE_WIN;
 	}
 
@@ -104,8 +126,10 @@ public:
 	}
 
 	inline unsigned count_piece(const bool &piece) const {
-		unsigned total = 0;
-		
+		// unsigned total = 0;
+		return bb[piece].count();
+
+		/*
 		for(auto &r : tile) {
 			for(auto &c : r) {
 				if (piece == c)
@@ -113,18 +137,20 @@ public:
 			}
 		}
 		return total;
+		*/
 	}
 private:
 	EXEC_STATE search_up (char &pos, bool pass, const bool &piece, char &count_step) {
 		count_step++;
-		
+		const char a_cycle = 25;	
 		// has run a circle, find no eatable piece or collision with same color
-		if (count_step >= 25 || (*this)(pos) == piece) {
+		if (count_step >= a_cycle || bb[piece].check(pos) /* (*this)(pos) == piece */ ) {
 			count_step = 0;
 			return FAIL;
 		}
 		
-		if( (*this)(pos) == (!piece)) {
+		// if( (*this)(pos) == (!piece)) {
+		if (bb[!piece].check(pos)) {
 			// pass: search route has passed a ring or not
 			if(pass)
 				return SUCCESS;
@@ -190,7 +216,8 @@ private:
 			return FAIL;
 		
 		//search four way and return position when have eatable siece
-		(*this)(pos) = SPACE;
+		// (*this)(pos) = SPACE;
+		bb[piece].remove(pos);
 
 		char count_step = 0;
 		if ( search_up(pos, false, piece, count_step) != FAIL) p.push_back(pos);	  
@@ -202,7 +229,8 @@ private:
 		if ( search_left(pos, false, piece, count_step) != FAIL) p.push_back(pos);  
 		pos = prev_pos; count_step = 0;
 		
-		(*this)(prev_pos) = piece;
+		// (*this)(prev_pos) = piece;
+		bb[piece].add(prev_pos);
 
 		if (p.empty())
 			return FAIL;
@@ -237,16 +265,36 @@ private:
 		
 		for (auto &d : dir) {
 			if (d == no_move) continue;
+
+			if (!bb[BLACK].check(pos+d) && !bb[WHITE].check(pos+d))
+				movable.push_back(pos + d);
+
+			/*
 			if ( (*this)(pos + d) == SPACE ){
 				movable.push_back(pos + d);
 			}
+			*/
 		}
 		return movable;
 	}
 public:
 	std::vector<Pair> eat_piece (const bool &piece) {
 		std::vector<Pair> eatable;
-
+		
+		for (int i{0}; i < SIZE; ++i) {
+			if ( bb[piece].check(i) ) {
+				char next_pos = i;
+				char now_pos = next_pos;
+				EXEC_STATE eat_pos = check_eat(next_pos, piece);
+				
+				if (eat_pos != FAIL) {
+					// std::cout << "Eat from: " << int(now_pos) << " to " << (int)next_pos << '\n';
+					eatable.push_back( {now_pos, next_pos} );
+				}
+			}
+		}
+		
+		/*
 		for (char i {0}; i < SIZE; ++i) {
 			char next_pos = i;
 			char tile = (*this)(next_pos);
@@ -261,6 +309,8 @@ public:
 				
 			}
 		}
+		*/
+
 		return eatable;
 	}
 
@@ -268,6 +318,15 @@ public:
 		std::vector<Pair> movable; //store available moves pairs(now and next)
 
 		for (char now_pos {0}; now_pos < SIZE; ++now_pos) {
+			if ( bb[piece].check(now_pos) ){
+				std::vector<char> move_pos { check_move(now_pos, piece) };
+				if ( !move_pos.empty() ) {
+					for (auto &next_pos : move_pos)
+						movable.push_back( {now_pos, next_pos} );
+				}
+			}
+		}
+			/*
 			char tile = (*this)(now_pos);
 			if (tile == piece) {		
 				std::vector<char> move_pos { check_move(now_pos, piece) };
@@ -277,7 +336,8 @@ public:
 						movable.push_back( {now_pos, next_pos} );
 				}
 			}
-		}
+			*/
+		
 		//random select a move
 		
 		// random_device rd;
@@ -299,11 +359,18 @@ public:
 	EXEC_STATE check_Piece_onBoard (const bool &piece) const {
 		bool find = false;
 
+		for (char i{0}; i < SIZE; ++i) {
+			if ( bb[piece].check(i) ){
+				find = true; break;
+			}
+		}
+		/*
 		for (int i = 0; i < SIZE; i++) {
 			if ( (*this)(i) == piece){
 				find = true; break;
 			}
 		}
+		*/
 		if(find) return SUCCESS;
 		else return FAIL;
 	}
@@ -314,11 +381,15 @@ public:
 		//if ((*this)(place_pos) != 0) return -1;
 
 		// cout << piece << "'s chance.\n";
-		// cout << "Move from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
-		// << place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
+		// std::cout << "Move from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
+		//<< place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
 
-		(*this)(place_pos) = piece;
-		(*this)(prev_pos) = SPACE;
+		bb[piece].add(place_pos);
+		bb[piece].remove(prev_pos);
+		bb[!piece].remove(place_pos);
+		// (*this)(place_pos) = piece;
+		// (*this)(prev_pos) = SPACE;
+		
 		step++;
 		// cout << (*this) << '\n';
 
@@ -331,11 +402,13 @@ public:
 		//if ((*this)(place_pos) != (!piece) ) return FAIL;
 		
 		// cout << piece << "'s chance.\n";
-		// cout << "Eat from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
-		// << place_pos / 6 << ", " << place_pos % 6<< ")\n\n";
+		// std::cout << "Eat from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
+		//<< place_pos / 6 << ", " << place_pos % 6<< ")\n\n";
 
-		(*this)(place_pos) = piece;
-		(*this)(prev_pos) = SPACE;
+		bb[piece].add(place_pos);
+		bb[piece].remove(prev_pos);
+		// (*this)(place_pos) = piece;
+		// (*this)(prev_pos) = SPACE;
 		step++;
 		// cout << (*this) << '\n';
 		// operator()(place_pos) = piece;
@@ -349,9 +422,17 @@ private:
 		pos = (5-x) * COL + y;
 		
 		for (int c = 0; c < COL; c++) {
-			std::swap(tile[0][c], tile[5][c]);
-			std::swap(tile[1][c], tile[4][c]);
-			std::swap(tile[2][c], tile[3][c]);
+			bb[0].swap( (0*6) + c, (5*6) + c);
+			bb[0].swap( (1*6) + c, (4*6) + c);
+			bb[0].swap( (2*6) + c, (3*6) + c);
+			
+			bb[1].swap( (0*6) + c, (5*6) + c);
+			bb[1].swap( (1*6) + c, (4*6) + c);
+			bb[1].swap( (2*6) + c, (3*6) + c);
+
+			// std::swap(tile[0][c], tile[5][c]);
+			// std::swap(tile[1][c], tile[4][c]);
+			// std::swap(tile[2][c], tile[3][c]);
 		}
 	}
 
@@ -361,9 +442,18 @@ private:
 		pos = x * COL + (5-y);
 		
 		for (int r = 0; r < COL; r++) {
-			std::swap(tile[r][0], tile[r][5]);
-			std::swap(tile[r][1], tile[r][4]);
-			std::swap(tile[r][2], tile[r][3]);
+			bb[0].swap( (r*6) + 0, (r*6) + 5);
+			bb[0].swap( (r*6) + 1, (r*6) + 4);
+			bb[0].swap( (r*6) + 2, (r*6) + 3);
+			
+			bb[1].swap( (r*6) + 0, (r*6) + 5);
+			bb[1].swap( (r*6) + 1, (r*6) + 4);
+			bb[1].swap( (r*6) + 2, (r*6) + 3);
+
+
+			// std::swap(tile[r][0], tile[r][5]);
+			// std::swap(tile[r][1], tile[r][4]);
+			// std::swap(tile[r][2], tile[r][3]);
 
 		}
 	}
@@ -375,7 +465,10 @@ private:
 		
 		for (int r = 0; r < COL; r++) {
 			for (int c = (r + 1); c < COL; c++) {
-				std::swap(tile[r][c], tile[c][r]);
+				bb[0].swap( (r*6) + c, (c*6) + r);
+				bb[1].swap( (r*6) + c, (c*6) + r);
+				
+				// std::swap(tile[r][c], tile[c][r]);
 			}
 		}
 	}
@@ -406,7 +499,8 @@ public:
 		out << "  ┃ ┏━━━┓ ┃ ┃ ┏━━━┓ ┃" << '\n';
 		
 		int idx = 0;
-		for (auto &row : b.tile) {
+		// for (auto &row : b.tile) {
+		for (int i=0; i<6; ++i) {
 			switch(idx) {
 				case 0: out << "0 ┃ ┃"; break;
 				case 1: out << "1 ┃ ┗"; break;
@@ -416,12 +510,22 @@ public:
 				case 5: out << "5 ┃ ┃"; break;
 			}
 
+			for (int j=0; j<6; ++j) {
+				if ( b.bb[0].check(i*6+j) && !b.bb[1].check(i*6+j))
+					out << std::setw(2) << 0;
+				else if (b.bb[1].check(i*6+j) && !b.bb[0].check(i*6+j)) 
+					out << std::setw(2) << 1;
+				else 
+					out << std::setw(2) << 'x';
+			}
+			/*
 			for (auto &t : row) {
 				if (t==SPACE)
 					out << std::setw(2) << 'x';
 				else
 					out << std::setw(2) << static_cast<int>(t);
 			}
+			*/
 
 			switch(idx) {
 				case 0: out << " ┃ ┃"; break;
