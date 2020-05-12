@@ -34,7 +34,8 @@ public:
 		torch::nn::Linear(1024, 512),
 		torch::nn::ReLU(),
 
-		torch::nn::Linear(512, 1)
+		torch::nn::Linear(512, 1),
+		torch::nn::Tanh()
 	) {
 		register_module("CNN_Net", CNN_Net);
 		register_module("FC_Net", FC_Net);
