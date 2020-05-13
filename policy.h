@@ -41,7 +41,7 @@ public:
 		
 		MonteCarloTree tree;
 		tree.reset(before);
-
+		std::cout << "MCTS take action\n";
 		const int &simulationtime = simulation_times;
 		int count_sim = 0;
 		while (count_sim < simulationtime) {
@@ -49,7 +49,7 @@ public:
 			count_sim++;
 		}
 		
-		tree.root->showchild();
+		// tree.root->showchild();
 
 		Pair best_move = tree.root->best_child();
 		return best_move;

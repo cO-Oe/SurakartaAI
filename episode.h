@@ -27,26 +27,24 @@ public:
 		ep_open = { tag, millisec() };
 	}
 
-	void close_episode (const std::string &tag, const agent &winner, const board &b) {
-		who_win = winner.name();
-		win_piece = b.count_piece(winner.get_piece());
+	void close_episode (const std::string &tag, const agent *winner, const board &b) {
+		who_win = (*winner).name();
+		win_piece = b.count_piece( (*winner).get_piece());
 		
 		ep_close = { tag, millisec() };
 	}
 
-	void train_close_episode ( const agent &winner) {
-		if ( dynamic_cast<const player*>(&winner) ) {
+	void train_close_episode ( const agent *winner) {
+		if ( dynamic_cast<const player*>(winner) ) {
 			player_result = 1;
 			envir_result = -1;
 		}
-		else if ( dynamic_cast<const envir*>(&winner)) {
+		else if ( dynamic_cast<const envir*>(winner)) {
 			player_result = -1;
 			envir_result = 1;
 		}
 		else {
-			std::cerr << "casting error\n";
-			// error on casting
-			exit(-1);
+			player_result = envir_result = 0;
 		}
 
 		int win = player_result; // player first
@@ -83,9 +81,14 @@ public:
 			return ((step() + 1) % 2) ? play : env;
 	}
 
+	// check draw
+	bool check_draw(const board &b) const {
+		WIN_STATE st = b.compare_piece();
+		return (step() > game_threshold && st==DRAW) ? true : false;
+	}
 	// get winner agent
-	agent& get_winner (agent &play, agent& env, board& b) {
-		if( step() > 100 ) {
+	agent& get_winner (agent &play, agent& env, const board& b) const {
+		if( step() > game_threshold ) {
 			WIN_STATE st = b.compare_piece();
 			if (st == BLACK_WIN)
 				return (play.get_piece() == BLACK) ? play : env ;
@@ -185,4 +188,6 @@ private:
 	time_t ep_time;
 	meta ep_open;
 	meta ep_close;
+	
+	static const int game_threshold = 100;
 };

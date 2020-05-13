@@ -21,7 +21,7 @@ any rule for a player will write here
 class agent {
 
 public:
-	agent(PIECE piece) : piece(piece), count_step(0), count_not_eat(0) {}
+	agent(PIECE piece=SPACE) : piece(piece), count_step(0), count_not_eat(0) {}
 
 public:
 	
@@ -29,8 +29,7 @@ public:
 	virtual void close_episode (const std::string& flag = "") {}
 	virtual Pair take_action (board &before) { return {}; }
 	
-	virtual std::string name() const { return "agent"; }
-	
+	virtual std::string name() const { return "None"; }
 
 	PIECE get_piece() const { return piece; }
 	
@@ -94,8 +93,9 @@ public:
 
 	virtual Pair take_action (board &before) override {
 		
-		Pair mv = Policy::Greedy(before, piece);
+		// Pair mv = Policy::Greedy(before, piece);
 		// Pair mv = Policy::NN(before, piece);
+		Pair mv = Policy::MCTS(before, piece, 1000);
 		EXEC_STATE S = before.move(mv.prev, mv.next, piece);
 		if (S==FAIL) {
 			return Pair{};

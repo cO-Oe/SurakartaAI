@@ -80,7 +80,7 @@ public:
 	}
 
 	//episode end and show stats
-  void close_episode(const std::string& flag, const agent &winner, const board &b) {
+  void close_episode(const std::string& flag, const agent *winner, const board &b) {
 		data.back().close_episode(flag, winner, b);
 		if (count % block == 0) show();
 	}

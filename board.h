@@ -260,8 +260,8 @@ private:
 		if (step_stack[piece].size() >= 5) {
 			if (pos == step_stack[piece].back().next){
 				forbidden_pos = step_stack[piece].back().prev;
-				step_stack[piece].clear();
-				std::cerr << "ENTER\nENTER\n\n";
+				// step_stack[piece].clear();
+				// std::cerr << "Repeated move dected.\n";
 			}
 		}
 		// 8 directions
@@ -346,9 +346,8 @@ public:
 
 	
 		// check repeated moves
-		if (step_stack[piece].empty()){
+		if (step_stack[piece].empty())
 			step_stack[piece].push_back({prev_pos, place_pos});
-		}
 		else if ( ((*this)(place_pos) == SPACE) && (step_stack[piece].back() == Pair{place_pos, prev_pos})) {
 			step_stack[piece].push_back({prev_pos, place_pos});
 		}
