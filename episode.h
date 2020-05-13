@@ -86,7 +86,13 @@ public:
 	// get winner agent
 	agent& get_winner (agent &play, agent& env, board& b) {
 		if( step() > 100 ) {
-			return ((b.compare_piece()) ? env : play);
+			WIN_STATE st = b.compare_piece();
+			if (st == BLACK_WIN)
+				return (play.get_piece() == BLACK) ? play : env ;
+			else if (st == WHITE_WIN)
+				return (play.get_piece() == BLACK) ? env : play ;
+			else
+				return env;
 		}
 		else if (env.get_piece() == BLACK)
 			return ((step() + 1) % 2) ? play : env ;

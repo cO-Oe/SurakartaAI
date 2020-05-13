@@ -15,7 +15,7 @@ public:
 		
 		std::random_device rd;
 		std::default_random_engine engine(rd());
-		
+		std::cout << "Greedy take action\n";
 		if ( before.check_Piece_onBoard(piece) == FAIL ) return {};
 		//find whether can eat piece or not
 
@@ -60,7 +60,7 @@ public:
 		const int epsilon = 10;
 		Pair best_move{};
 
-		std::cerr << "Net take action: \npiece: " << piece << '\n';
+		std::cerr << "Net take action: \n";
 
 		std::random_device rd;
 		std::default_random_engine engine(rd());

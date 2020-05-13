@@ -344,10 +344,7 @@ public:
 		if (place_pos >= SIZE || place_pos < 0) return FAIL;
 		//if ((*this)(place_pos) != 0) return -1;
 
-		// std::cout << piece << "'s chance.\n";
-		// std::cout << "Move from (" << prev_pos / 6 << ", " << prev_pos % 6 << ") to (" 
-		// << place_pos / 6 << ", " << place_pos % 6 << ")\n\n";
-		
+	
 		// check repeated moves
 		if (step_stack[piece].empty()){
 			step_stack[piece].push_back({prev_pos, place_pos});

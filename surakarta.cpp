@@ -81,6 +81,11 @@ int main(int argc, char* argv[]) {
 
 			Pair mv = who.take_action(b);
 			
+			// Print for Debug 
+			std::cout << who.get_piece() << "'s turn.\t";
+	 		std::cout << "Move from (" << mv.prev / 6 << ", " << mv.prev % 6 << ") to (" 
+		 	<< mv.next / 6 << ", " << mv.next % 6 << ")\n";
+			
 			// end game
 			if (mv == Pair{} || game.step() > 100)
 				break;
@@ -91,9 +96,8 @@ int main(int argc, char* argv[]) {
 		}
 
 		// winner agent
-		agent& win = game.get_winner(env, play, b);
-
-		stat.close_episode("end", win, b);
+		agent &win = game.get_winner(env, play, b);
+		
 		train_set_game.train_close_episode(win);
 
 		// train Network 
@@ -103,12 +107,14 @@ int main(int argc, char* argv[]) {
 			train_set_game.clear();
 		}
 
+		
 		if ( (cnt) % save_epoch == 0) {
 			if (!save_module.empty()) {
 				std::cout << "Checkpoint in epoch " << cnt << '\n';
 				torch::save(Net, save_module);
 			}
 		}
+		stat.close_episode("end", win, b);
 	}
 	return 0;
 }
