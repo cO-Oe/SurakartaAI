@@ -408,7 +408,7 @@ private:
 
 	inline void rotate_left (char &pos) { transpose(pos); reflect_vertical(pos); }
 public:
-	inline void flip_color () {
+	inline void flip_color() {
 
 		for (int r = 0; r < COL; r++) {
 			for (int c = 0; c < COL; c++ ) {
@@ -418,6 +418,9 @@ public:
 					tile[r][c] = WHITE; 
 			}
 		}
+		char tmp = 0;
+		reflect_horizontal(tmp);
+		reflect_vertical(tmp);
 	}
 
 public:

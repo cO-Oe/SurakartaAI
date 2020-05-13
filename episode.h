@@ -16,7 +16,7 @@ class episode {
 friend class statistic;
 
 public:
-	episode() : ep_state(initial_state()), ep_time(0) { ep_moves.reserve(1000); }
+	episode() : ep_state(initial_state()), ep_size(0), ep_time(0)  { ep_moves.reserve(1000); }
 
 public:
 	board& state() { return ep_state; }
@@ -31,25 +31,10 @@ public:
 		who_win = winner.name();
 		win_piece = b.count_piece(winner.get_piece());
 		
-		// if cast correctly
-		if ( dynamic_cast<const player*>(&winner) ) {
-			player_result = 1;
-			envir_result = -1;
-		}
-		else if ( dynamic_cast<const envir*>(&winner)) {
-			player_result = -1;
-			envir_result = 1;
-		}
-		else {
-			std::cerr << "fucking error\n";
-			// error on casting
-			exit(-1);
-		}
-
 		ep_close = { tag, millisec() };
 	}
 
-	void train_close_episode ( const agent &winner, const board &b) {
+	void train_close_episode ( const agent &winner) {
 		if ( dynamic_cast<const player*>(&winner) ) {
 			player_result = 1;
 			envir_result = -1;
@@ -59,36 +44,33 @@ public:
 			envir_result = 1;
 		}
 		else {
-			std::cerr << "fucking error\n";
+			std::cerr << "casting error\n";
 			// error on casting
 			exit(-1);
 		}
 
 		int win = player_result; // player first
-		for(int i=0; i<ep_boards.size(); i++) {
+		for(int i=0; i < ep_size; i++) {
 			train_result.push_back(win);
 			win = -win;
 		}
-		ep_boards.clear();
+		ep_size = 0;
 	}
 
-	//save every action in episode
+	// record boards and actions in one episode
     void record_action (const Pair &move, const board &b, const PIECE &piece) {
 		ep_moves.emplace_back( move, 0, millisec() - ep_time );
 		ep_boards.emplace_back(b);
 		ep_pieces.emplace_back(piece);
 	}
+
+	// record boards in one train-set (all boards are transform to the view of "player")
 	void record_train_board(const board &b, const PIECE &piece) {
 		board b_ = b;
-
 		if (piece == WHITE) 
 			b_.flip_color();
-		
+		ep_size++;
 		train_boards.push_back(b_);
-		ep_boards.emplace_back(b);
-
-		// std::cerr << b_ << '\n';
-
 	}
 
 	//decide whose turn
@@ -100,6 +82,7 @@ public:
 		else
 			return ((step() + 1) % 2) ? play : env;
 	}
+
 	// get winner agent
 	agent& get_winner (agent &play, agent& env, board& b) {
 		if( step() > 100 ) {
@@ -109,7 +92,6 @@ public:
 			return ((step() + 1) % 2) ? play : env ;
 		else
 			return ((step() + 1) % 2) ? env : play ;
-	
 	}
 
 	void clear() {
@@ -187,6 +169,7 @@ public:
 	std::vector<PIECE> ep_pieces;
 	std::vector<board> train_boards;
 	std::vector<int> train_result;
+	int ep_size;
 	int player_result;
 	int envir_result;
 

@@ -4,14 +4,14 @@
 #include "board.h"
 #include <string.h>
 #include <vector>
-
+#include <iomanip>
 // transform function
 
 class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
     private:
         std::vector<board> states_;
         std::vector<int> labels_;
-        std::vector<PIECE> pieces_;
+        // std::vector<PIECE> pieces_;
     public:
         explicit BoardDataSet(const std::vector<board> st, const std::vector<int> label)
         : states_(st),
@@ -21,32 +21,24 @@ class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
         torch::data::Example<> get(size_t index) override {
             board next = states_[index];
 
-            // copy board value
-            // const int stacks = 3;
-            // generate_states(tensor_stack, next);
-            float tensor_stack[36];
+            float tensor_stack[ board::SIZE ];
             memset(tensor_stack, 0, sizeof(tensor_stack));
-            for (int i=0; i<board::SIZE; i++) {
+          
+			// Convert board value to C-Style array
+			for (int i=0; i<board::SIZE; i++) {
                 auto p = next(i);
-                if (p==SPACE)
+                if (p == SPACE)
                     tensor_stack[i]  = 0;
-                else if(p==BLACK)
+                else if(p == BLACK)
                     tensor_stack[i]  = 1;
-                else if(p==WHITE)
+                else if(p == WHITE)
                     tensor_stack[i]  = -1;
             }
-			/*
-			std::cout << "Before generated: ";
-			for(int i=0; i<36; i++) {
-				if (i%6==0) std::cout << '\n';
-				std::cout << tensor_stack[i] << ' ';
-			}
-			*/
-			// std::cout << '\n';
-            // set state
+            
+			// Convert C-array to Tensor
             torch::Tensor state_tensor = torch::from_blob(tensor_stack, {1, 6, 6}).to(device);
-			// std::cerr << "After generated: " << state_tensor << '\n';
-            // set label
+
+			// Convert label to Tensor
             int64_t label = labels_[index];
             torch::Tensor label_tensor = torch::full({1}, label).to(device);
             return {state_tensor, label_tensor};
@@ -59,20 +51,22 @@ class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
 
 
 
-void train_Net(const episode &game, const int num_epoch = 10) {
+void train_Net(const episode &game) {
 
-    // load dataset
-    const int64_t batch_size = 16;
+    // Set arguments
+	const int num_epoch = 10;
+    const int64_t batch_size = 32;
+	const double learning_rate = 0.001;
 
-    // std::cerr << game.train_boards.size() << ' ' << game.train_result.size() << '\n';
-    auto data_set = BoardDataSet(game.train_boards, game.train_result).map(torch::data::transforms::Stack<>());
+    // Package board and label to train dataset
+	auto data_set = BoardDataSet(game.train_boards, game.train_result).map(torch::data::transforms::Stack<>());
 	auto set_size = data_set.size().value();
 
     auto data_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(data_set, torch::data::DataLoaderOptions().batch_size(batch_size));
 
     // construct optimizer
-    torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions(0.0001));
-
+    torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions( learning_rate ));
+    
     std::cerr << "Start to train Network: \n\n";
 
     for(int epoch=1; epoch <= num_epoch; epoch++) {
@@ -82,20 +76,14 @@ void train_Net(const episode &game, const int num_epoch = 10) {
         for (torch::data::Example<>& batch : *data_loader) {
             auto boards_ = batch.data.to(device);
             auto labels_ = batch.target.squeeze().to(device);  // reduce dim from (1, x) to (x)
-            // std::cout << "board: "<< boards_;
-            // std::cout << "label: " << labels_;
-            // boards_ = boards_.to(torch::kF32).to(device);
-            // labels_ = labels_.to(torch::kF32).to(device);
-            // std::cout << "boards is : " << boards_ << '\n';
-            auto output = Net->forward(boards_);
-            //std::cout << "label is: " << labels_ << "\n Shape is: " << labels_.sizes() << '\n';
-            // std::cout << "output is: " << output << "\n Shape is: " << output.sizes() << '\n';
-            auto loss = torch::mse_loss(output, labels_).to(device);
-            // std::cerr << "batch " <<  batch_num+1 <<  " loss: " << loss << '\n';
-            // std::cerr << "output: " << output << " " << "label: " << labels_ << '\n';
+
+			auto output = Net->forward(boards_).to(device);
+            
+			auto loss = torch::mse_loss(output, labels_).to(device);
 
             mse += loss.item<double>() * boards_.size(0);
-            // update SGD
+
+			// update SGD
             optimizer.zero_grad();
             loss.backward();
             optimizer.step();
@@ -104,7 +92,7 @@ void train_Net(const episode &game, const int num_epoch = 10) {
         }
         // mse /= batch_num;
         mse /= set_size;
-		std::cout << "Epoch " << epoch << ": " << "Mean square error: " << mse << '\n';
+		std::cout << "Epoch " << std::setw(2) << epoch << ": " << "Batch Nums = " << std::setw(2) << batch_num << " Mean square error= " << mse << '\n';
 
     }
 }
