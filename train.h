@@ -64,7 +64,7 @@ void train_Net(const episode &game, const int num_epoch = 10) {
     auto data_loader = torch::data::make_data_loader(data_set, torch::data::DataLoaderOptions().batch_size(batch_size).workers(2));
     
     // construct optimizer
-    torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions(1e-3));
+    torch::optim::Adam optimizer(Net->parameters(), torch::optim::AdamOptions(1e-4));
     
     std::cerr << "Start to train Network: \n\n";
 
