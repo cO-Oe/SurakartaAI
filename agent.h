@@ -94,8 +94,8 @@ public:
 
 	virtual Pair take_action (board &before) override {
 		
-		// Pair mv = Policy::Greedy(before, piece);
-		Pair mv = Policy::NN(before, piece);
+		Pair mv = Policy::Greedy(before, piece);
+		// Pair mv = Policy::NN(before, piece);
 		EXEC_STATE S = before.move(mv.prev, mv.next, piece);
 		if (S==FAIL) {
 			return Pair{};

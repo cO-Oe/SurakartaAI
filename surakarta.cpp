@@ -46,6 +46,9 @@ int main(int argc, char* argv[]) {
 		std::cout << "Train on GPU\n";
 		device = torch::kCUDA;
 	}
+	else {
+		std::cout << "Train on CPU\n";
+	}
 	Net->to(device);
 
 	statistic stat(total, block);
