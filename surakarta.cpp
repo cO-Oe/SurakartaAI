@@ -31,6 +31,10 @@ void man_help() {
 	std::cout << "  --save=PATH_TO_FILE " << "Enter file name (path) to save Network parameters\n" << std::setw(30) << " " << "after training.\n\n";
 	std::cout << std::left << std::setw(30);
 	std::cout << "  --mode=MODE" << "Two Modes: \"train\" for training,  \"eval\" for evaluation.\n" << std::setw(30) << " " << "Default value: \"train\"\n\n";
+	std::cout << std::left << std::setw(30);
+	std::cout << "  --black=POLICY" << "Three POLICYS: \"Greedy\", \"MCTS\", \"CNN\" to choose.\n";
+	std::cout << std::left << std::setw(30);
+	std::cout << "  --white=POLICY" << "\n\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -42,6 +46,8 @@ int main(int argc, char* argv[]) {
 	std::string load_module;
 	std::string save_module;
 	std::string mode = "train";
+	std::string black_policy = "CNN";
+	std::string white_policy = "Greedy";
 	const int train_epoch = 1;  
 	const int save_epoch = 100;
 	
@@ -66,6 +72,12 @@ int main(int argc, char* argv[]) {
 		else if (para.find("--mode=") == 0) {
 			mode = para.substr(para.find("=") + 1);
 		}
+		else if (para.find("--black=") == 0) {
+			black_policy = para.substr(para.find("=") + 1);
+		}
+		else if (para.find("--white=") == 0) {
+			white_policy = para.substr(para.find("=") + 1);
+		}
 	}
 	if (!load_module.empty()){
 		torch::load(Net, load_module);
@@ -84,8 +96,8 @@ int main(int argc, char* argv[]) {
 
 	statistic stat(total, block);
 
-	player play {BLACK};  // 0
-	envir env {WHITE};  // 1
+	player play {BLACK, black_policy};  // 0
+	envir env {WHITE, white_policy};  // 1
 	int cnt = 0;
 	episode train_set_game;
 

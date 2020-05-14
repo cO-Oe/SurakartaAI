@@ -52,10 +52,28 @@ protected:
 	const PIECE piece;
 	int count_step;
 	int count_not_eat;
-	
 	void print_pos (const Pair &pos) const{
 		std::cout << "piece: " << piece << '\n';
 		std::cout << "move from " << pos.prev / 6 << ' ' << pos.prev % 6 << " to " << pos.next / 6 << ' ' << pos.next % 6 << '\n';
+	}
+
+	Pair find_policy(std::string policy, board &before) {
+		Pair mv;
+		if (policy == "greedy" || policy == "Greedy") {
+			mv = Policy::Greedy(before, piece);
+		}
+		else if (policy == "CNN") {
+			mv = Policy::NN(before, piece);
+		}
+		else if (policy == "MCTS" || policy == "mcts") {
+			mv = Policy::MCTS(before, piece, 1000);
+		}
+		else {
+			std::cerr << "Method not found\n";
+			exit(-1);
+		}
+		
+		return mv;
 	}
 
 };
@@ -63,14 +81,15 @@ protected:
 
 class player : public agent {
 public:
-	player(PIECE p) : agent(p){
+	player(PIECE p, std::string policy) : agent(p) , policy(policy) {
 
 	}
 	
 	virtual Pair take_action (board &before) override{	
-		
+		Pair mv = find_policy(policy, before);
 		// Pair mv = Policy::MCTS(before, piece, 5000);
-		Pair mv = Policy::NN(before, piece);
+		// Pair mv = Policy::NN(before, piece);
+		
 		EXEC_STATE S = before.move(mv.prev, mv.next, piece);
 		if (S==FAIL) {
 			std::cerr << "failed\n";
@@ -80,22 +99,25 @@ public:
 			return mv;
 	}
 	virtual std::string name() const override {return "player"; }
-
+	std::string policy;
 };
 
 
 class envir : public agent {
 
 public:
-	envir(PIECE p) : agent(p){
+	envir(PIECE p, std::string policy) : agent(p), policy(policy) {
 		
 	}
 
 	virtual Pair take_action (board &before) override {
 		
+		Pair mv = find_policy(policy, before);
+		
 		// Pair mv = Policy::Greedy(before, piece);
-		Pair mv = Policy::NN(before, piece);
+		// Pair mv = Policy::NN(before, piece);
 		// Pair mv = Policy::MCTS(before, piece, 1000);
+
 		EXEC_STATE S = before.move(mv.prev, mv.next, piece);
 		if (S==FAIL) {
 			return Pair{};
@@ -104,6 +126,6 @@ public:
 			return mv;
 	}
 	virtual std::string name()  const override {return "envir";}
-
+	std::string policy;
 };
 
