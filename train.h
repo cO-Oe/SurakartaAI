@@ -55,7 +55,7 @@ void train_Net(const episode &game) {
 
     // Set arguments
 	const int num_epoch = 10;
-    const int64_t batch_size = 64;
+    const int64_t batch_size = 200;
 	const double learning_rate = 0.001;
 
     // Package board and label to train dataset

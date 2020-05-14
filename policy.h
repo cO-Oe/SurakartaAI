@@ -86,12 +86,10 @@ public:
 			// enumerate all moves
 			for (auto &mv : moves) {
 				board next = now;
-				next.move(mv.prev, mv.next, piece);
-
-				const int stacks = 1; // black*1 + white*1 + take_turn
+				next.move(mv.prev, mv.next, BLACK);
 
 				
-				float tensor_stack[stacks * board::SIZE];
+				float tensor_stack[ board::SIZE ];
 				generate_states(tensor_stack, next);
 				torch::Tensor boards = torch::from_blob(tensor_stack, {1, 1, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
 				torch::Tensor pred_val = Net->forward(boards).to(device);
@@ -103,6 +101,14 @@ public:
 					max_val = pred;
 					best_move = mv;
 				}
+			}
+			// transform coordinate
+			if (piece==WHITE) {
+				auto transform_coord = [COL=board::COL] (char &pos) { 
+					pos = ( (COL-1) - (pos/COL))*COL + ((COL-1) - (pos%COL));
+				};
+				transform_coord(best_move.prev);
+				transform_coord(best_move.next);
 			}
 	//	}
 		// else { // epsilon : random move

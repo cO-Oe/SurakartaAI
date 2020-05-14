@@ -22,15 +22,15 @@ void man_help() {
 	std::cout << "Usege: ./surakarta [OPTION]...\n\n";
 	std::cout << "A Surakarta Game Engine implementing different strategy, ex: Greedy, MCTS, AlphaGo(only value function), enjoy it!\n\n";
 	
-	std::cout << "[OPTION]...\n  ";
+	std::cout << "[OPTION]...\n";
 	std::cout << std::left << std::setw(30);
-	std::cout << "--total=NUM_OF_GAME" << "Set total numbers of games to run.\n\n  ";
+	std::cout << "  --total=NUM_OF_GAME" << "Set total numbers of games to run. Default value: 5\n\n";
 	std::cout << std::left << std::setw(30);
-	std::cout << "--load=PATH_TO_FILE " << "Enter file name (path) to load model (Network parameters) for training and playing\n\n  ";
+	std::cout << "  --load=PATH_TO_FILE " << "Enter file name (path) to load model (Network parameters)\n" <<  std::setw(30) << " " << "for training and playing\n\n";
 	std::cout << std::left << std::setw(30);
-	std::cout << "--save=PATH_TO_FILE " << "Enter file name (path) to save Network parameters after training.\n\n  ";
+	std::cout << "  --save=PATH_TO_FILE " << "Enter file name (path) to save Network parameters\n" << std::setw(30) << " " << "after training.\n\n";
 	std::cout << std::left << std::setw(30);
-	std::cout << "--mode=MODE" << "Two Modes: \"train\" for training,  \"eval\" for evaluation.\n\n";
+	std::cout << "  --mode=MODE" << "Two Modes: \"train\" for training,  \"eval\" for evaluation.\n" << std::setw(30) << " " << "Default value: \"train\"\n\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 	size_t total = 5, block = 0;
 	std::string load_module;
 	std::string save_module;
-	std::string mode;
+	std::string mode = "train";
 	const int train_epoch = 1;  
 	const int save_epoch = 100;
 	
