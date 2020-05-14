@@ -92,10 +92,13 @@ public:
 				float tensor_stack[ board::SIZE ];
 				generate_states(tensor_stack, next);
 				torch::Tensor boards = torch::from_blob(tensor_stack, {1, 1, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
+				// std::cout << boards << '\n';
+				// std::cout << "pieces: " << piece << '\n';
 				torch::Tensor pred_val = Net->forward(boards).to(device);
 
 				double pred = pred_val[0].item<double>();
 				// std::cerr << "Q value: " << pred << '\n';	
+
 				// find the best V(s)
 				if ( pred > max_val) {
 					max_val = pred;

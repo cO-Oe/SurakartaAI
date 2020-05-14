@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
 		 	<< mv.next / 6 << ", " << mv.next % 6 << ")\n";
 			
 			// end game
-			if (mv == Pair{} || game.step() > 100)
+			if (mv == Pair{} || game.step() > episode::game_threshold)
 				break;
 			game.record_action(mv, prev_b, who.get_piece());
 			train_set_game.record_train_board(b, who.get_piece());

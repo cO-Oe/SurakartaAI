@@ -182,6 +182,7 @@ public:
 	int player_result;
 	int envir_result;
 
+	static const int game_threshold = 150;
 private:
 	std::string who_win;
 	unsigned win_piece;
@@ -189,5 +190,4 @@ private:
 	meta ep_open;
 	meta ep_close;
 	
-	static const int game_threshold = 100;
 };

@@ -55,7 +55,7 @@ void train_Net(const episode &game) {
 
     // Set arguments
 	const int num_epoch = 10;
-    const int64_t batch_size = 200;
+    const int64_t batch_size = 64;
 	const double learning_rate = 0.001;
 
     // Package board and label to train dataset
@@ -78,7 +78,9 @@ void train_Net(const episode &game) {
             auto labels_ = batch.target.squeeze().to(device);  // reduce dim from (1, x) to (x)
 
 			auto output = Net->forward(boards_).to(device);
-            
+           	// std::cout << boards_ << '\n';
+			// std::cout << "output: " << output << '\n';
+			// std::cout << "labels: " << labels_ << '\n';
 			auto loss = torch::mse_loss(output, labels_).to(device);
 
             mse += loss.item<double>() * boards_.size(0);

@@ -68,7 +68,7 @@ void generate_states(float *board_stacks, const board &next) {
         	*(board_stacks + (i) ) = 1;
 
 		else if(p==WHITE)
-        	*(board_stacks + (i) ) = 2;
+        	*(board_stacks + (i) ) = -1;
 	}	
 }
 
