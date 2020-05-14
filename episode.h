@@ -189,5 +189,5 @@ private:
 	meta ep_open;
 	meta ep_close;
 	
-	static const int game_threshold = 100;
+	static const int game_threshold = 200;
 };

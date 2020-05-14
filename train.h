@@ -78,7 +78,8 @@ void train_Net(const episode &game) {
             auto labels_ = batch.target.squeeze().to(device);  // reduce dim from (1, x) to (x)
 
 			auto output = Net->forward(boards_).to(device);
-            
+           	std::cout << "output: " << output << '\n';
+			std::cout << "label: " << labels_ << '\n';
 			auto loss = torch::mse_loss(output, labels_).to(device);
 
             mse += loss.item<double>() * boards_.size(0);

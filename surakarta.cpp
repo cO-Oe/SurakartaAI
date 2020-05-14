@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 	size_t total = 5, block = 0;
 	std::string load_module;
 	std::string save_module;
-	std::string mode;
+	std::string mode = "train";
 	const int train_epoch = 1;  
 	const int save_epoch = 100;
 	
@@ -102,14 +102,13 @@ int main(int argc, char* argv[]) {
 			board prev_b = b;
 
 			Pair mv = who.take_action(b);
-			
 			// Print for Debug 
 			std::cout << who.get_piece() << "'s turn.\t";
 	 		std::cout << "Move from (" << mv.prev / 6 << ", " << mv.prev % 6 << ") to (" 
 		 	<< mv.next / 6 << ", " << mv.next % 6 << ")\n";
 			
 			// end game
-			if (mv == Pair{} || game.step() > 100)
+			if (mv == Pair{} || game.step() > 200)
 				break;
 			game.record_action(mv, prev_b, who.get_piece());
 			train_set_game.record_train_board(b, who.get_piece());
