@@ -1,30 +1,42 @@
 #pragma once
-#include "NN.h"
 #include "episode.h"
-#include "board.h"
 #include <string.h>
 #include <vector>
 #include <iomanip>
-// transform function
 
+// transform function
 class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
     private:
         std::vector<board> states_;
+		std::vector<board> states_flip;
         std::vector<int> labels_;
         // std::vector<PIECE> pieces_;
+		const unsigned stack_size = 3;
     public:
-        explicit BoardDataSet(const std::vector<board> st, const std::vector<int> label)
+        explicit BoardDataSet(const std::vector<board> st, const std::vector<board> st_flip, const std::vector<int> label)
         : states_(st),
+		  states_flip(st_flip),
           labels_(label) {}
 
 
         torch::data::Example<> get(size_t index) override {
             board next = states_[index];
+			std::vector<board> input_board;
+			
+			for(int i=0; i<stack_size; i++) {
+				if (index % 2 == 0)
+					input_board.push_back(states_[index+i]);
+				else
+					input_board.push_back(states_flip[index+i]);
+				// std::cout << i+1 << ":\n" << input_board[i] << '\n';
+			}
 
-            float tensor_stack[ board::SIZE ];
+            float tensor_stack[ board::SIZE * stack_size ];
             memset(tensor_stack, 0, sizeof(tensor_stack));
-          
+			
 			// Convert board value to C-Style array
+          	generate_states(tensor_stack, input_board);
+			/*
 			for (int i=0; i<board::SIZE; i++) {
                 auto p = next(i);
                 if (p == SPACE)
@@ -34,18 +46,20 @@ class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
                 else if(p == WHITE)
                     tensor_stack[i]  = -1;
             }
+			*/
             
 			// Convert C-array to Tensor
-            torch::Tensor state_tensor = torch::from_blob(tensor_stack, {1, 6, 6}).to(device);
-
+            torch::Tensor state_tensor = torch::from_blob(tensor_stack, {3, 6, 6}).to(device);
+			// std::cout << "Inpuut Tensor: \n" << state_tensor << '\n';
 			// Convert label to Tensor
-            int64_t label = labels_[index];
+            int64_t label = labels_[index + (stack_size-1)];
             torch::Tensor label_tensor = torch::full({1}, label).to(device);
             return {state_tensor, label_tensor};
         };
 
         torch::optional<size_t> size() const override {
-            return states_.size();
+			assert(states_.size() > (stack_size-1) );
+			return states_.size() - (stack_size-1);
         };
 };
 
@@ -59,7 +73,7 @@ void train_Net(const episode &game) {
 	const double learning_rate = 0.001;
 
     // Package board and label to train dataset
-	auto data_set = BoardDataSet(game.train_boards, game.train_result).map(torch::data::transforms::Stack<>());
+	auto data_set = BoardDataSet(game.train_boards_, game.train_boards_flip, game.train_result).map(torch::data::transforms::Stack<>());
 	auto set_size = data_set.size().value();
 
     auto data_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(data_set, torch::data::DataLoaderOptions().batch_size(batch_size));

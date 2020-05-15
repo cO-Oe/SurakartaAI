@@ -10,21 +10,23 @@ public:
 	CNNImpl() : 
 
 	CNN_Net(
-		torch::nn::Conv2d(torch::nn::Conv2dOptions(1, 512, 3).stride(1).padding(1).bias(false)), // shape: [ 512 * 6 * 6 ]
+		// Input shape [3 * 6 * 6]
+		torch::nn::Conv2d(torch::nn::Conv2dOptions(3, 512, 3).stride(1).padding(1).bias(false)), 
 		torch::nn::BatchNorm2d(512),
 		torch::nn::ReLU(),
-
+		// shape: [ 512 * 6 * 6 ]
+		
 		// Layer 2
-		// torch::nn::Linear(64, 32),
-		torch::nn::Conv2d(torch::nn::Conv2dOptions(512, 512, 3).stride(1).padding(0).bias(false)), // shape: [ 512 * 4 * 4 ]
+		torch::nn::Conv2d(torch::nn::Conv2dOptions(512, 512, 3).stride(1).padding(0).bias(false)), 
 		torch::nn::BatchNorm2d(512),
 		torch::nn::ReLU(),
+		// shape: [ 512 * 4 * 4 ]
 
 		// Layer 3
-		// torch::nn::Linear(32, 1),
-		torch::nn::Conv2d(torch::nn::Conv2dOptions(512, 512, 3).stride(1).padding(0).bias(false)), // shape: [ 512 * 2 * 2 ]
+		torch::nn::Conv2d(torch::nn::Conv2dOptions(512, 512, 3).stride(1).padding(0).bias(false)), 
 		torch::nn::BatchNorm2d(512),
 		torch::nn::ReLU()
+		// shape: [ 512 * 2 * 2 ]
 	) , 
 
 	FC_Net(
@@ -59,16 +61,18 @@ TORCH_MODULE(CNN);
 CNN Net;
 
 // Convert Board to C-array
-void generate_states(float *board_stacks, const board &next) {
-	for (int i=0; i<36; i++) {
-		auto p = next(i);
-		if (p==SPACE)
-        	*(board_stacks + (i) ) = 0;
-		else if(p==BLACK)
-        	*(board_stacks + (i) ) = 1;
+void generate_states(float *board_stacks, const std::vector<board> &next) {
+	for(int st = 0; st < 3; st++) {
+		for (int i = 0; i < board::SIZE; i++) {
+			auto square = next[st](i);
+			if (square == SPACE)
+        		*(board_stacks + (st*36+i) ) = 0;
+			else if(square == BLACK)
+    	    	*(board_stacks + (st*36+i) ) = 1;
 
-		else if(p==WHITE)
-        	*(board_stacks + (i) ) = -1;
-	}	
+			else if(square == WHITE)
+        		*(board_stacks + (st*36+i) ) = -1;
+		}
+	}
 }
 

@@ -27,7 +27,7 @@ public:
 	
 	virtual void open_episode (const std::string& flag = "") {}
 	virtual void close_episode (const std::string& flag = "") {}
-	virtual Pair take_action (board &before) { return {}; }
+	virtual Pair take_action (board &before, std::vector<board> &prev_board) { return {}; }
 	
 	virtual std::string name() const { return "None"; }
 
@@ -57,13 +57,13 @@ protected:
 		std::cout << "move from " << pos.prev / 6 << ' ' << pos.prev % 6 << " to " << pos.next / 6 << ' ' << pos.next % 6 << '\n';
 	}
 
-	Pair find_policy(std::string policy, board &before) {
+	Pair find_policy(std::string policy, board &before, auto &prev_board) {
 		Pair mv;
 		if (policy == "greedy" || policy == "Greedy") {
 			mv = Policy::Greedy(before, piece);
 		}
 		else if (policy == "CNN") {
-			mv = Policy::NN(before, piece);
+			mv = Policy::NN(before, piece, prev_board);
 		}
 		else if (policy == "MCTS" || policy == "mcts") {
 			mv = Policy::MCTS(before, piece, 1000);
@@ -81,12 +81,10 @@ protected:
 
 class player : public agent {
 public:
-	player(PIECE p, std::string policy) : agent(p) , policy(policy) {
-
-	}
+	player(PIECE p, std::string policy) : agent(p) , policy(policy) {}
 	
-	virtual Pair take_action (board &before) override{	
-		Pair mv = find_policy(policy, before);
+	virtual Pair take_action (board &before, std::vector<board> &prev_board) override{	
+		Pair mv = find_policy(policy, before, prev_board);
 		// Pair mv = Policy::MCTS(before, piece, 5000);
 		// Pair mv = Policy::NN(before, piece);
 		
@@ -110,9 +108,9 @@ public:
 		
 	}
 
-	virtual Pair take_action (board &before) override {
+	virtual Pair take_action (board &before, std::vector<board> &prev_board) override {
 		
-		Pair mv = find_policy(policy, before);
+		Pair mv = find_policy(policy, before, prev_board);
 		
 		// Pair mv = Policy::Greedy(before, piece);
 		// Pair mv = Policy::NN(before, piece);

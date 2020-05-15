@@ -111,9 +111,8 @@ int main(int argc, char* argv[]) {
 		while ( true ) {
 			// player first (left)
 			agent& who = game.take_turns(play, env);
-			board prev_b = b;
-
-			Pair mv = who.take_action(b);
+			
+			Pair mv = who.take_action( b, game.ep_boards );
 			
 			// Print for Debug 
 			std::cout << who.get_piece() << "'s turn.\t";
@@ -123,7 +122,7 @@ int main(int argc, char* argv[]) {
 			// end game
 			if (mv == Pair{} || game.step() > episode::game_threshold)
 				break;
-			game.record_action(mv, prev_b, who.get_piece());
+			game.record_action(mv, b, who.get_piece());
 			train_set_game.record_train_board(b, who.get_piece());
 			
 			std::cout << b << '\n';

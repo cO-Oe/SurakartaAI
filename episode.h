@@ -65,10 +65,12 @@ public:
 	// record boards in one train-set (all boards are transform to the view of "player")
 	void record_train_board(const board &b, const PIECE &piece) {
 		board b_ = b;
-		if (piece == WHITE) 
-			b_.flip_color();
+		// if (piece == WHITE) 
+		b_.flip_color();
 		ep_size++;
-		train_boards.push_back(b_);
+		
+		train_boards_.push_back(b);
+		train_boards_flip.push_back(b_);
 	}
 
 	//decide whose turn
@@ -104,7 +106,8 @@ public:
 	}
 
 	void clear() {
-		train_boards.clear();
+		train_boards_.clear();
+		train_boards_flip.clear();
 		train_result.clear();
 	}
 
@@ -176,8 +179,12 @@ public:
 	std::vector<move> ep_moves;
 	std::vector<board> ep_boards;
 	std::vector<PIECE> ep_pieces;
-	std::vector<board> train_boards;
+	
+	// for training
+	std::vector<board> train_boards_;
+	std::vector<board> train_boards_flip;
 	std::vector<int> train_result;
+	
 	int ep_size;
 	int player_result;
 	int envir_result;

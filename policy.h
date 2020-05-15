@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+class episode;
 
 class Policy {
 public:
@@ -55,8 +56,8 @@ public:
 		return best_move;
 	}
 
-	static Pair NN (board &before, const PIECE &piece) {
-		// 10% epsilon
+	static Pair NN (board &before, const PIECE &piece, auto &prev_board) {
+		// 10% epsilon to random move
 		const int epsilon = 10;
 		Pair best_move{};
 
@@ -68,30 +69,40 @@ public:
 
 		int prob = distribution(engine);
 
-		//if ( prob >= epsilon) {	// 1-epsilon : NN output
-			board now = before;
-
+		if ( prob >= epsilon) {	// 1-epsilon : NN output
+			board now_b = before;
+					
+			board prev_b;
 			if (piece == WHITE) {
-				now.flip_color();
+				now_b.flip_color();
+				if (prev_board.size() >= 2){
+					prev_b = *( prev_board.end() - 2);
+					prev_b.flip_color();
+				}
 			}
-			//std::cerr << "exploit: " << prob << '\n';
-
 			// get legal action
 				
-			auto moves = now.get_available_move(BLACK);
+			auto moves = now_b.get_available_move(BLACK);
 
 			double max_val = -2.0;
+			const unsigned stack_size = 3;	
+			
 			std::vector<Pair> bags;
+			std::vector<board> input_boards(stack_size);
+			input_boards[0] = prev_b;
+			input_boards[1] = now_b;
+			std::cout << "prev_b:\n" << prev_b;
+			std::cout << "now_b:\n" << now_b;
 
 			// enumerate all moves
 			for (auto &mv : moves) {
-				board next = now;
+				board next = now_b;
 				next.move(mv.prev, mv.next, BLACK);
-
+				input_boards[2] = next;
+				float tensor_stack[ board::SIZE * stack_size];
 				
-				float tensor_stack[ board::SIZE ];
-				generate_states(tensor_stack, next);
-				torch::Tensor boards = torch::from_blob(tensor_stack, {1, 1, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
+				generate_states(tensor_stack, input_boards);
+				torch::Tensor boards = torch::from_blob(tensor_stack, {1, 3, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
 				// std::cout << boards << '\n';
 				// std::cout << "pieces: " << piece << '\n';
 				torch::Tensor pred_val = Net->forward(boards).to(device);
@@ -113,21 +124,16 @@ public:
 				transform_coord(best_move.prev);
 				transform_coord(best_move.next);
 			}
-	//	}
-		// else { // epsilon : random move
-		// 	// std::cerr << "explore: " << prob << '\n';;
-		// 	// std::vector<Pair> ea = before.find_piece(piece, EAT), mv = before.find_piece(piece, MOVE), pos;
-		// 	// pos.reserve(ea.size() + mv.size());
-		// 	// pos.insert(pos.end(), ea.begin(), ea.end());
-		// 	// pos.insert(pos.end(), mv.begin(), mv.end());
-		// 	// std::vector<Pair> ea = before.find_piece(piece, EAT), mv = before.find_piece(piece, MOVE), pos;
-		// 	std::vector<Pair> legal_mv = before.get_available_move(piece);
+		}
+		else { // epsilon : random move
+		// std::cerr << "explore: " << prob << '\n';;
+		 	std::vector<Pair> legal_mv = before.get_available_move(piece);
 
-		// 	if ( !legal_mv.empty() ) {
-		// 		std::shuffle(legal_mv.begin(), legal_mv.end(), engine);
-		// 		best_move = legal_mv[0];
-		// 	}
-		// }
+		 	if ( !legal_mv.empty() ) {
+		 		std::shuffle(legal_mv.begin(), legal_mv.end(), engine);
+		 		best_move = legal_mv[0];
+		 	}
+		}
 
 		return best_move;		
 	}
