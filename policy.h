@@ -73,12 +73,11 @@ public:
 			board now_b = before;
 					
 			board prev_b;
+			if (prev_board.size() >= 2)
+				prev_b = *( prev_board.end() - 2);
 			if (piece == WHITE) {
 				now_b.flip_color();
-				if (prev_board.size() >= 2){
-					prev_b = *( prev_board.end() - 2);
-					prev_b.flip_color();
-				}
+				prev_b.flip_color();
 			}
 			// get legal action
 				
@@ -116,6 +115,9 @@ public:
 					best_move = mv;
 				}
 			}
+			board ttpp = now_b;
+			ttpp.move(best_move.prev, best_move.next, BLACK);
+			std::cout << "next_b:\n" << ttpp;
 			// transform coordinate
 			if (piece==WHITE) {
 				auto transform_coord = [COL=board::COL] (char &pos) { 
