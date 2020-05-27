@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <iomanip>
 class episode;
 
 class Policy {
@@ -35,6 +35,24 @@ public:
 		}
 		return {};
 
+	}
+	static Pair Manual (board &before, const PIECE &piece) {
+		auto moves = before.get_available_move(piece);
+		std::cout << "Available moves: \n";
+		int cnt = 0;
+		for(auto &mv_pair : moves) {
+			std::cout << "(" << std::setw(2) << int(mv_pair.prev) << ", " << std::setw(2) << int(mv_pair.next) << ") ";
+			if (++cnt % 4 == 0){
+				std::cout << '\n';
+				cnt = 0;
+			}
+		}
+		std::cout << '\n';
+		std::cout << "Please input moves: (format:pos1, pos2)\n";
+		int x1, x2;
+		std::cin >> x1 >> x2;
+		
+		return {x1, x2};
 	}
 
 	static Pair MCTS (board &before, const PIECE &piece, const int &simulation_times) {

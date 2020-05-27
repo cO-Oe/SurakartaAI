@@ -32,7 +32,7 @@ void man_help() {
 	std::cout << std::left << std::setw(30);
 	std::cout << "  --mode=MODE" << "Two Modes: \"train\" for training,  \"eval\" for evaluation.\n" << std::setw(30) << " " << "Default value: \"train\"\n\n";
 	std::cout << std::left << std::setw(30);
-	std::cout << "  --black=POLICY" << "Three POLICYS: \"Greedy\", \"MCTS\", \"CNN\" to choose.\n";
+	std::cout << "  --black=POLICY" << "Three POLICYS: \"Greedy\", \"MCTS\", \"CNN\", \"Manual\" to choose.\n";
 	std::cout << std::left << std::setw(30);
 	std::cout << "  --white=POLICY" << "\n\n";
 }
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
 		stat.open_episode("W:B");
 		episode& game = stat.back(); 
-
+		std::cout << b << '\n';
 		while ( true ) {
 			// player first (left)
 			agent& who = game.take_turns(play, env);

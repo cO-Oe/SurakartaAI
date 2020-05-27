@@ -68,6 +68,9 @@ protected:
 		else if (policy == "MCTS" || policy == "mcts") {
 			mv = Policy::MCTS(before, piece, 1000);
 		}
+		else if (policy == "Manual") {
+			mv = Policy::Manual(before, piece);
+		}
 		else {
 			std::cerr << "Method not found\n";
 			exit(-1);

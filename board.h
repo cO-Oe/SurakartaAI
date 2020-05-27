@@ -78,7 +78,8 @@ public:
 	
 	static constexpr int SIZE { 36 };
 	static constexpr int COL { 6 };
-	
+	static constexpr int repeat_move_limit {6};
+
 	static constexpr std::array<int, 4> corner_pos {0, 5, 30, 35};
 	// std::map<char, std::pair<char, std::function< EXEC_STATE(char&, bool , const bool&, char&)> > >mapping_circle;
 	static std::unordered_map<char, std::pair<char, DIRECTION > >mapping_circle; // declare below
@@ -256,14 +257,18 @@ private:
 	std::vector<char> check_move (const char &pos, const PIECE &piece)  {
 		std::vector<char> movable;
 		char forbidden_pos = 87;
-
+		
+		/*
 		if (step_stack[piece].size() >= 5) {
 			if (pos == step_stack[piece].back().next){
+				
 				forbidden_pos = step_stack[piece].back().prev;
+				
 				// step_stack[piece].clear();
 				// std::cerr << "Repeated move dected.\n";
 			}
 		}
+		*/
 		// 8 directions
 		char dir[8] {-7, -6, -5, -1, 1, 5, 6, 7};
 		const char no_move {0};
@@ -354,6 +359,12 @@ public:
 		else {
 			step_stack[piece].clear();
 			step_stack[piece].push_back({prev_pos, place_pos});
+		}
+
+		// if repeated move too much, lose
+		if (step_stack[piece].size() >= repeat_move_limit) {
+			std::cout << "Repeated Move!! Lose.\n\n";
+			return FAIL;
 		}
 
 		(*this)(place_pos) = piece;
