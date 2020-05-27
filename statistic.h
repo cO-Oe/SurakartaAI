@@ -40,11 +40,16 @@ public:
 		auto it = data.end();
 		static int total = 0;
 		static int player_win = 0;
+		static int none_win = 0;
 		total += blk;
 		for ( int i = 0; i < blk; ++i ) {
 			auto& ep = *(--it);
-
-			player_win += (ep.who_win == "player") ? 1: 0;
+			
+			if ( ep.who_win == "player" )
+				++player_win;
+			else if ( ep.who_win != "envir" )
+			 	++none_win;
+			
 
 			sop += ep.step();
 			pop += ep.step('p');
@@ -54,13 +59,14 @@ public:
 			pdu += ep.time('p');
 			edu += ep.time('e');
 		}
-		int env_win = total - player_win;
+		int env_win = total - player_win - none_win;
+		static int total_nodraw = player_win + env_win;
 		//print win rate
 		std::cout << "In " << count << " games:\n\n";
 		std::cout << "player win: " << player_win << " games\n";
  		std::cout << "env win: " << env_win << " games\n\n";
-		std::cout << "player win rate: " << static_cast<double>(player_win) / total * 100.0 << "%\n";
-		std::cout << "env win rate: " << double(env_win) / total * 100.0 << "%\n";
+		std::cout << "player win rate: " << static_cast<double>(player_win) / total_nodraw * 100.0 << "%\n";
+		std::cout << "env win rate: " << double(env_win) / total_nodraw * 100.0 << "%\n";
 		//cout << sdu / 1000.0 << ' ' << pdu / 1000.0 << ' ' << edu / 1000.0 << '\n';
 		std::cout << "ops: " << (sop * 1000.0) / sdu << '(' << (pop * 1000.0) / pdu << " | " << 
 		(eop * 1000.0) / edu << ')'<< "(player_op | env_op)" << '\n';
