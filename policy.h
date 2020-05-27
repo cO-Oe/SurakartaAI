@@ -58,10 +58,10 @@ public:
 
 	static Pair NN (board &before, const PIECE &piece, auto &prev_board) {
 		// 10% epsilon to random move
-		const int epsilon = 10;
+		const int epsilon = 0;
 		Pair best_move{};
 
-		std::cerr << "Net take action: \n";
+		std::cout << "Net take action: \n";
 
 		std::random_device rd;
 		std::default_random_engine engine(rd());
@@ -82,7 +82,8 @@ public:
 			// get legal action
 				
 			auto moves = now_b.get_available_move(BLACK);
-
+			if ( moves.size() == 0  )
+				return {};
 			double max_val = -2.0;
 			const unsigned stack_size = 3;	
 			
@@ -90,8 +91,8 @@ public:
 			std::vector<board> input_boards(stack_size);
 			input_boards[0] = prev_b;
 			input_boards[1] = now_b;
-			std::cout << "prev_b:\n" << prev_b;
-			std::cout << "now_b:\n" << now_b;
+			// std::cout << "prev_b:\n" << prev_b;
+			// std::cout << "now_b:\n" << now_b;
 
 			// enumerate all moves
 			for (auto &mv : moves) {
@@ -117,7 +118,7 @@ public:
 			}
 			board ttpp = now_b;
 			ttpp.move(best_move.prev, best_move.next, BLACK);
-			std::cout << "next_b:\n" << ttpp;
+//			std::cout << "next_b:\n" << ttpp;
 			// transform coordinate
 			if (piece==WHITE) {
 				auto transform_coord = [COL=board::COL] (char &pos) { 
