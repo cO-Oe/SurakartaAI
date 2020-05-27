@@ -74,9 +74,9 @@ public:
 		return best_move;
 	}
 
-	static Pair NN (board &before, const PIECE &piece, auto &prev_board) {
+	static Pair NN (board &before, const PIECE &piece, auto &prev_board, std::string &mode) {
 		// 10% epsilon to random move
-		const int epsilon = 0;
+		const int epsilon = (mode=="train") ? 10 : 0 ;
 		Pair best_move{};
 
 		std::cout << "Net take action: \n";
@@ -111,11 +111,13 @@ public:
 			input_boards[1] = now_b;
 			// std::cout << "prev_b:\n" << prev_b;
 			// std::cout << "now_b:\n" << now_b;
-
+			
+			EXEC_STATE max_st;
 			// enumerate all moves
 			for (auto &mv : moves) {
 				board next = now_b;
-				next.move(mv.prev, mv.next, BLACK);
+				EXEC_STATE st = next.move(mv.prev, mv.next, BLACK);
+
 				input_boards[2] = next;
 				float tensor_stack[ board::SIZE * stack_size];
 				
@@ -130,13 +132,15 @@ public:
 
 				// find the best V(s)
 				if ( pred > max_val) {
+					max_st = st;
 					max_val = pred;
 					best_move = mv;
 				}
 			}
-			board ttpp = now_b;
-			ttpp.move(best_move.prev, best_move.next, BLACK);
+//			board ttpp = now_b;
+//			ttpp.move(best_move.prev, best_move.next, BLACK);
 //			std::cout << "next_b:\n" << ttpp;
+
 			// transform coordinate
 			if (piece==WHITE) {
 				auto transform_coord = [COL=board::COL] (char &pos) { 
@@ -145,6 +149,8 @@ public:
 				transform_coord(best_move.prev);
 				transform_coord(best_move.next);
 			}
+			if (max_st==FAIL) return {};
+			else return best_move;
 		}
 		else { // epsilon : random move
 		// std::cerr << "explore: " << prob << '\n';;
@@ -155,7 +161,7 @@ public:
 		 		best_move = legal_mv[0];
 		 	}
 		}
-
+		
 		return best_move;		
 	}
 };

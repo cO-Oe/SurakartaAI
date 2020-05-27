@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 	std::string black_policy = "CNN";
 	std::string white_policy = "Greedy";
 	const int train_epoch = 1;  
-	const int save_epoch = 100;
+	const int save_epoch = 1000;
 	
 	for (int i{1}; i < argc; i++) {
 		std::string para(argv[i]);
@@ -100,6 +100,7 @@ int main(int argc, char* argv[]) {
 	envir env {WHITE, white_policy};  // 1
 	int cnt = 0;
 	episode train_set_game;
+	int save_cnt = 0;
 
 	while (!stat.is_finished()) {
 
@@ -112,7 +113,7 @@ int main(int argc, char* argv[]) {
 			// player first (left)
 			agent& who = game.take_turns(play, env);
 			
-			Pair mv = who.take_action( b, game.ep_boards );
+			Pair mv = who.take_action( b, game.ep_boards, mode );
 			
 			// Print for Debug 
 			std::cout << who.get_piece() << "'s turn.\t";
@@ -147,10 +148,12 @@ int main(int argc, char* argv[]) {
 			train_set_game.clear();
 		}
 
-		// save Network	
+		// save Network
 		if ( (cnt) % save_epoch == 0 && !save_module.empty()) {
 			std::cout << "Checkpoint in epoch " << cnt << '\n';
-			torch::save(Net, save_module);
+			save_cnt++;
+			std::string module_name = save_module + std::to_string(save_cnt*save_epoch) + ".pt";
+			torch::save(Net, module_name);
 		}
 	}
 	return 0;

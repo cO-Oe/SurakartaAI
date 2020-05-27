@@ -361,14 +361,15 @@ public:
 			step_stack[piece].push_back({prev_pos, place_pos});
 		}
 
+		(*this)(place_pos) = piece;
+		(*this)(prev_pos) = SPACE;
+
 		// if repeated move too much, lose
 		if (step_stack[piece].size() >= repeat_move_limit) {
-			std::cout << "Repeated Move!! Lose.\n\n";
+			std::cout << "Repeated Move!! Lose.\n";
 			return FAIL;
 		}
 
-		(*this)(place_pos) = piece;
-		(*this)(prev_pos) = SPACE;
 		step++;
 
 		return SUCCESS;
