@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 	std::string black_policy = "CNN";
 	std::string white_policy = "Greedy";
 	const int train_epoch = 1;  
-	const int save_epoch = 1000;
+	const int save_epoch = 250;
 	
 	for (int i{1}; i < argc; i++) {
 		std::string para(argv[i]);
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 		else {
 			agent &win = game.get_winner(env, play, b);
 			// winner agent
-		
+			std::cout << win.name() << " Wins\n";	
 			train_set_game.train_close_episode( &win );
 			stat.close_episode("end", &win, b);
 		}

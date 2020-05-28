@@ -12,22 +12,22 @@ public:
 	Policy() = delete;
 	
 
-	static Pair Greedy (board &before, const PIECE &piece) {
+	static Pair Greedy (const board &before, const PIECE &piece) {
 		
 		std::random_device rd;
 		std::default_random_engine engine(rd());
 		std::cout << "Greedy take action\n";
 		if ( before.check_Piece_onBoard(piece) == FAIL ) return {};
 		//find whether can eat piece or not
-
-		std::vector<Pair> pos = before.find_piece(piece, EAT);
+		board tmp = before;
+		std::vector<Pair> pos = tmp.find_piece(piece, EAT);
 		if ( !pos.empty() ) {
 			// take eat action first
 			return pos[0];	
 		}
 		else {
 			//take move action second
-			pos = before.find_piece(piece, MOVE);
+			pos = tmp.find_piece(piece, MOVE);
 			if ( !pos.empty() ) {
 				std::shuffle(pos.begin(), pos.end(), engine);
 				return pos[0];
@@ -36,8 +36,9 @@ public:
 		return {};
 
 	}
-	static Pair Manual (board &before, const PIECE &piece) {
-		auto moves = before.get_available_move(piece);
+	static Pair Manual (const board &before, const PIECE &piece) {
+		board tmp = before;
+		auto moves = tmp.get_available_move(piece);
 		std::cout << "Available moves: \n";
 		int cnt = 0;
 		for(auto &mv_pair : moves) {
@@ -74,7 +75,7 @@ public:
 		return best_move;
 	}
 
-	static Pair NN (board &before, const PIECE &piece, auto &prev_board, std::string &mode) {
+	static Pair NN (const board &before, const PIECE &piece, auto &prev_board, std::string &mode) {
 		// 10% epsilon to random move
 		const int epsilon = (mode=="train") ? 10 : 0 ;
 		Pair best_move{};
@@ -93,13 +94,15 @@ public:
 			board prev_b;
 			if (prev_board.size() >= 2)
 				prev_b = *( prev_board.end() - 2);
+			/*
 			if (piece == WHITE) {
 				now_b.flip_color();
 				prev_b.flip_color();
 			}
+			*/
 			// get legal action
 				
-			auto moves = now_b.get_available_move(BLACK);
+			auto moves = now_b.get_available_move(piece);
 			if ( moves.size() == 0  )
 				return {};
 			double max_val = -2.0;
@@ -116,13 +119,13 @@ public:
 			// enumerate all moves
 			for (auto &mv : moves) {
 				board next = now_b;
-				EXEC_STATE st = next.move(mv.prev, mv.next, BLACK);
+				next.move(mv.prev, mv.next, piece);
 
 				input_boards[2] = next;
-				float tensor_stack[ board::SIZE * stack_size];
+				float tensor_stack[ board::SIZE * ( stack_size * 2 + 1) ];
 				
-				generate_states(tensor_stack, input_boards);
-				torch::Tensor boards = torch::from_blob(tensor_stack, {1, 3, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
+				generate_states(tensor_stack, input_boards, piece);
+				torch::Tensor boards = torch::from_blob(tensor_stack, {1, 7, 6, 6}).to(device); // shape: [batch_size, stacks, row, col]
 				// std::cout << boards << '\n';
 				// std::cout << "pieces: " << piece << '\n';
 				torch::Tensor pred_val = Net->forward(boards).to(device);
@@ -132,7 +135,6 @@ public:
 
 				// find the best V(s)
 				if ( pred > max_val) {
-					max_st = st;
 					max_val = pred;
 					best_move = mv;
 				}
@@ -142,6 +144,7 @@ public:
 //			std::cout << "next_b:\n" << ttpp;
 
 			// transform coordinate
+			/*
 			if (piece==WHITE) {
 				auto transform_coord = [COL=board::COL] (char &pos) { 
 					pos = ( (COL-1) - (pos/COL))*COL + ((COL-1) - (pos%COL));
@@ -149,12 +152,11 @@ public:
 				transform_coord(best_move.prev);
 				transform_coord(best_move.next);
 			}
-			if (max_st==FAIL) return {};
-			else return best_move;
+			*/
 		}
 		else { // epsilon : random move
-		// std::cerr << "explore: " << prob << '\n';;
-		 	std::vector<Pair> legal_mv = before.get_available_move(piece);
+			board tmp = before;
+		 	std::vector<Pair> legal_mv = tmp.get_available_move(piece);
 
 		 	if ( !legal_mv.empty() ) {
 		 		std::shuffle(legal_mv.begin(), legal_mv.end(), engine);

@@ -10,8 +10,8 @@ public:
 	CNNImpl() : 
 
 	CNN_Net(
-		// Input shape [3 * 6 * 6]
-		torch::nn::Conv2d(torch::nn::Conv2dOptions(3, 512, 3).stride(1).padding(1).bias(false)), 
+		// Input shape [7 * 6 * 6]
+		torch::nn::Conv2d(torch::nn::Conv2dOptions(7, 512, 3).stride(1).padding(1).bias(false)), 
 		torch::nn::BatchNorm2d(512),
 		torch::nn::ReLU(),
 		// shape: [ 512 * 6 * 6 ]
@@ -61,18 +61,22 @@ TORCH_MODULE(CNN);
 CNN Net;
 
 // Convert Board to C-array
-void generate_states(float *board_stacks, const std::vector<board> &next) {
+void generate_states(float *board_stacks, const std::vector<board> &next, const bool piece) {
 	for(int st = 0; st < 3; st++) {
-		for (int i = 0; i < board::SIZE; i++) {
-			auto square = next[st](i);
-			if (square == SPACE)
-        		*(board_stacks + (st*36+i) ) = 0;
-			else if(square == BLACK)
-    	    	*(board_stacks + (st*36+i) ) = 1;
-
-			else if(square == WHITE)
-        		*(board_stacks + (st*36+i) ) = -1;
+		for(int layer=0; layer<2; layer++) {
+			for (int i = 0; i < board::SIZE; i++) {
+				auto square = next[st](i);
+				if (square == BLACK && layer==0)
+					*(board_stacks + ( ( st*2 + layer )*36 + i) ) = 1;
+				else if (square == WHITE && layer==1)
+					*(board_stacks + ( ( st*2 + layer )*36 + i) ) = 1;
+				else
+        			*(board_stacks + ( ( st*2 + layer )*36 + i) ) = 0;
+			}
 		}
+	}
+	for(int i=0; i < board::SIZE; i++) {
+		*(board_stacks + (6*36 + i)) = (piece==BLACK) ? 0 : 1;
 	}
 }
 

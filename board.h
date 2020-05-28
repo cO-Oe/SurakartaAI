@@ -78,7 +78,7 @@ public:
 	
 	static constexpr int SIZE { 36 };
 	static constexpr int COL { 6 };
-	static constexpr int repeat_move_limit {6};
+	static constexpr int repeat_move_limit {3};
 
 	static constexpr std::array<int, 4> corner_pos {0, 5, 30, 35};
 	// std::map<char, std::pair<char, std::function< EXEC_STATE(char&, bool , const bool&, char&)> > >mapping_circle;
