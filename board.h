@@ -73,12 +73,12 @@ private:
 	
 	std::vector<Pair> step_stack[2];
 	static const std::size_t stack_limit = 5;
-public:
 	int step;//if odd, white's turn if even, black's turn
 	
+public:
 	static constexpr int SIZE { 36 };
 	static constexpr int COL { 6 };
-	static constexpr int repeat_move_limit {3};
+	static constexpr int repeat_move_limit {6};
 
 	static constexpr std::array<int, 4> corner_pos {0, 5, 30, 35};
 	// std::map<char, std::pair<char, std::function< EXEC_STATE(char&, bool , const bool&, char&)> > >mapping_circle;
@@ -364,13 +364,13 @@ public:
 		(*this)(place_pos) = piece;
 		(*this)(prev_pos) = SPACE;
 
+		step++;
 		// if repeated move too much, lose
 		if (step_stack[piece].size() >= repeat_move_limit) {
 			std::cout << "Repeated Move!! Lose.\n";
 			return FAIL;
 		}
 
-		step++;
 
 		return SUCCESS;
 	}

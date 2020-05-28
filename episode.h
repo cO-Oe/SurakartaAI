@@ -39,7 +39,7 @@ public:
 			player_result = 1;
 			envir_result = -1;
 		}
-		else if ( dynamic_cast<const envir*>(winner)) {
+		else if ( dynamic_cast<const envir*>(winner) ) {
 			player_result = -1;
 			envir_result = 1;
 		}
@@ -56,14 +56,14 @@ public:
 	}
 
 	// record boards and actions in one episode
-    void record_action (const Pair &move, const board &b, const PIECE &piece) {
+    void record_action ( const Pair &move, const board &b, const PIECE &piece ) {
 		ep_moves.emplace_back( move, 0, millisec() - ep_time );
 		ep_boards.emplace_back(b);
 		ep_pieces.emplace_back(piece);
 	}
 
 	// record boards in one train-set (all boards are transform to the view of "player")
-	void record_train_board(const board &b, const PIECE &piece) {
+	void record_train_board( const board &b, const PIECE &piece ) {
 		// board b_ = b;
 		// if (piece == WHITE) 
 		// b_.flip_color();
@@ -108,8 +108,9 @@ public:
 
 	void clear() {
 		train_boards_.clear();
-		train_boards_flip.clear();
+		// train_boards_flip.clear();
 		train_result.clear();
+		train_pieces_.clear();
 	}
 
 public:
@@ -183,7 +184,7 @@ public:
 	
 	// for training
 	std::vector<board> train_boards_;
-	std::vector<board> train_boards_flip;
+	// std::vector<board> train_boards_flip;
 	std::vector<PIECE> train_pieces_;
 	std::vector<int> train_result;
 	

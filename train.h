@@ -34,17 +34,18 @@ class BoardDataSet : public torch::data::Dataset<BoardDataSet> {
 			
 			// Convert board value to C-Style array
           	generate_states(tensor_stack, input_board, piece);
-			/*
+			
 			for(int i=0; i<stack_size; i++) {
 				std::cout << "Board: " << i+1 << '\n';
 				std::cout << input_board[i];
 			}
-			*/
+			
 			// Convert C-array to Tensor
             torch::Tensor state_tensor = torch::from_blob(tensor_stack, {7, 6, 6}).to(device);
-			// std::cout << "Input Tensor: \n" << state_tensor << '\n';
+			std::cout << "Input Tensor: \n" << state_tensor << '\n';
 			// Convert label to Tensor
             int64_t label = labels_[index + (stack_size-1)];
+			std::cout << "label: " << label << '\n';
             torch::Tensor label_tensor = torch::full({1}, label).to(device);
             return {state_tensor, label_tensor};
         };

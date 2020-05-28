@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 		else {
 			agent &win = game.get_winner(env, play, b);
 			// winner agent
-			std::cout << win.name() << " Wins\n";	
+			std::cout << win.name() << " Wins\n\n";	
 			train_set_game.train_close_episode( &win );
 			stat.close_episode("end", &win, b);
 		}

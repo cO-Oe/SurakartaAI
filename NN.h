@@ -62,16 +62,16 @@ CNN Net;
 
 // Convert Board to C-array
 void generate_states(float *board_stacks, const std::vector<board> &next, const bool piece) {
-	for(int st = 0; st < 3; st++) {
-		for(int layer=0; layer<2; layer++) {
+	for(int layer = 0; layer < 2; layer++) {
+		for(int st = 0; st < 3; st++) {
 			for (int i = 0; i < board::SIZE; i++) {
 				auto square = next[st](i);
 				if (square == BLACK && layer==0)
-					*(board_stacks + ( ( st*2 + layer )*36 + i) ) = 1;
+					*(board_stacks + ( ( layer*3 + st )*36 + i) ) = 1;
 				else if (square == WHITE && layer==1)
-					*(board_stacks + ( ( st*2 + layer )*36 + i) ) = 1;
+					*(board_stacks + ( ( layer*3 + st )*36 + i) ) = 1;
 				else
-        			*(board_stacks + ( ( st*2 + layer )*36 + i) ) = 0;
+        			*(board_stacks + ( ( layer*3 + st )*36 + i) ) = 0;
 			}
 		}
 	}

@@ -115,7 +115,6 @@ public:
 			// std::cout << "prev_b:\n" << prev_b;
 			// std::cout << "now_b:\n" << now_b;
 			
-			EXEC_STATE max_st;
 			// enumerate all moves
 			for (auto &mv : moves) {
 				board next = now_b;
